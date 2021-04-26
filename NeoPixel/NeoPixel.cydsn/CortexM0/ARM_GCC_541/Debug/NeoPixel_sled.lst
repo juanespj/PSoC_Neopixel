@@ -1,0 +1,1194 @@
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"NeoPixel_sled.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.NeoPixel_sendBit,"ax",%progbits
+  20              		.align	2
+  21              		.global	NeoPixel_sendBit
+  22              		.code	16
+  23              		.thumb_func
+  24              		.type	NeoPixel_sendBit, %function
+  25              	NeoPixel_sendBit:
+  26              	.LFB0:
+  27              		.file 1 "Generated_Source\\PSoC4\\NeoPixel_sled.c"
+   1:Generated_Source\PSoC4/NeoPixel_sled.c **** /* ========================================
+   2:Generated_Source\PSoC4/NeoPixel_sled.c ****  *
+   3:Generated_Source\PSoC4/NeoPixel_sled.c ****  * Copyright YOUR COMPANY, THE YEAR
+   4:Generated_Source\PSoC4/NeoPixel_sled.c ****  * All Rights Reserved
+   5:Generated_Source\PSoC4/NeoPixel_sled.c ****  * UNPUBLISHED, LICENSED SOFTWARE.
+   6:Generated_Source\PSoC4/NeoPixel_sled.c ****  *
+   7:Generated_Source\PSoC4/NeoPixel_sled.c ****  * CONFIDENTIAL AND PROPRIETARY INFORMATION
+   8:Generated_Source\PSoC4/NeoPixel_sled.c ****  * WHICH IS THE PROPERTY OF your company.
+   9:Generated_Source\PSoC4/NeoPixel_sled.c ****  *
+  10:Generated_Source\PSoC4/NeoPixel_sled.c ****  * ========================================
+  11:Generated_Source\PSoC4/NeoPixel_sled.c **** */
+  12:Generated_Source\PSoC4/NeoPixel_sled.c **** /*
+  13:Generated_Source\PSoC4/NeoPixel_sled.c ****  This is an example of how simple driving a Neopixel can be
+  14:Generated_Source\PSoC4/NeoPixel_sled.c ****  This code is optimized for understandability and changability rather than raw speed
+  15:Generated_Source\PSoC4/NeoPixel_sled.c ****  More info at http://wp.josh.com/2014/05/11/ws2812-neopixels-made-easy/
+  16:Generated_Source\PSoC4/NeoPixel_sled.c **** */
+  17:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  18:Generated_Source\PSoC4/NeoPixel_sled.c **** #include "NeoPixel_sled.h"
+  19:Generated_Source\PSoC4/NeoPixel_sled.c **** #include "NeoPixel_pixl.h"
+  20:Generated_Source\PSoC4/NeoPixel_sled.c **** void NeoPixel_sendBit(bool bitVal)
+  21:Generated_Source\PSoC4/NeoPixel_sled.c **** {   
+  28              		.loc 1 21 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 70B5     		push	{r4, r5, r6, lr}
+  34              		.cfi_def_cfa_offset 16
+  35              		.cfi_offset 4, -16
+  36              		.cfi_offset 5, -12
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 2
+
+
+  37              		.cfi_offset 6, -8
+  38              		.cfi_offset 14, -4
+  22:Generated_Source\PSoC4/NeoPixel_sled.c ****   if (bitVal)
+  39              		.loc 1 22 0
+  40 0002 0028     		cmp	r0, #0
+  41 0004 0ED0     		beq	.L2
+  23:Generated_Source\PSoC4/NeoPixel_sled.c ****   { // 0 bit
+  24:Generated_Source\PSoC4/NeoPixel_sled.c ****     CY_SYS_PINS_SET_PIN(NeoPixel_pixl__DR, NeoPixel_pixl_SHIFT); 
+  42              		.loc 1 24 0
+  43 0006 0D4C     		ldr	r4, .L4
+  44 0008 2368     		ldr	r3, [r4]
+  45 000a 1025     		movs	r5, #16
+  46 000c 2B43     		orrs	r3, r5
+  47 000e 2360     		str	r3, [r4]
+  25:Generated_Source\PSoC4/NeoPixel_sled.c ****     CyDelayCycles(2);
+  48              		.loc 1 25 0
+  49 0010 0220     		movs	r0, #2
+  50              	.LVL1:
+  51 0012 FFF7FEFF 		bl	CyDelayCycles
+  52              	.LVL2:
+  26:Generated_Source\PSoC4/NeoPixel_sled.c ****     CY_SYS_PINS_CLEAR_PIN(NeoPixel_pixl__DR, NeoPixel_pixl_SHIFT);
+  53              		.loc 1 26 0
+  54 0016 2368     		ldr	r3, [r4]
+  55 0018 AB43     		bics	r3, r5
+  56 001a 2360     		str	r3, [r4]
+  27:Generated_Source\PSoC4/NeoPixel_sled.c ****     CyDelayCycles(1);
+  57              		.loc 1 27 0
+  58 001c 0120     		movs	r0, #1
+  59 001e FFF7FEFF 		bl	CyDelayCycles
+  60              	.LVL3:
+  61 0022 0AE0     		b	.L1
+  62              	.LVL4:
+  63              	.L2:
+  28:Generated_Source\PSoC4/NeoPixel_sled.c ****   }
+  29:Generated_Source\PSoC4/NeoPixel_sled.c ****   else
+  30:Generated_Source\PSoC4/NeoPixel_sled.c ****   { // 1 bit
+  31:Generated_Source\PSoC4/NeoPixel_sled.c ****       CY_SYS_PINS_SET_PIN(NeoPixel_pixl__DR, NeoPixel_pixl_SHIFT);            
+  64              		.loc 1 31 0
+  65 0024 054B     		ldr	r3, .L4
+  66 0026 1A68     		ldr	r2, [r3]
+  67 0028 1021     		movs	r1, #16
+  68 002a 0A43     		orrs	r2, r1
+  69 002c 1A60     		str	r2, [r3]
+  32:Generated_Source\PSoC4/NeoPixel_sled.c ****       CY_SYS_PINS_CLEAR_PIN(NeoPixel_pixl__DR, NeoPixel_pixl_SHIFT);
+  70              		.loc 1 32 0
+  71 002e 1A68     		ldr	r2, [r3]
+  72 0030 8A43     		bics	r2, r1
+  73 0032 1A60     		str	r2, [r3]
+  33:Generated_Source\PSoC4/NeoPixel_sled.c ****       CyDelayCycles(1);
+  74              		.loc 1 33 0
+  75 0034 0120     		movs	r0, #1
+  76              	.LVL5:
+  77 0036 FFF7FEFF 		bl	CyDelayCycles
+  78              	.LVL6:
+  79              	.L1:
+  34:Generated_Source\PSoC4/NeoPixel_sled.c ****   } 
+  35:Generated_Source\PSoC4/NeoPixel_sled.c **** }
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 3
+
+
+  80              		.loc 1 35 0
+  81              		@ sp needed
+  82 003a 70BD     		pop	{r4, r5, r6, pc}
+  83              	.L5:
+  84              		.align	2
+  85              	.L4:
+  86 003c 00030440 		.word	1074004736
+  87              		.cfi_endproc
+  88              	.LFE0:
+  89              		.size	NeoPixel_sendBit, .-NeoPixel_sendBit
+  90              		.section	.text.NeoPixel_sendByte,"ax",%progbits
+  91              		.align	2
+  92              		.global	NeoPixel_sendByte
+  93              		.code	16
+  94              		.thumb_func
+  95              		.type	NeoPixel_sendByte, %function
+  96              	NeoPixel_sendByte:
+  97              	.LFB1:
+  36:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  37:Generated_Source\PSoC4/NeoPixel_sled.c **** void NeoPixel_sendByte(uint8_t byte)
+  38:Generated_Source\PSoC4/NeoPixel_sled.c **** {
+  98              		.loc 1 38 0
+  99              		.cfi_startproc
+ 100              		@ args = 0, pretend = 0, frame = 0
+ 101              		@ frame_needed = 0, uses_anonymous_args = 0
+ 102              	.LVL7:
+ 103 0000 70B5     		push	{r4, r5, r6, lr}
+ 104              		.cfi_def_cfa_offset 16
+ 105              		.cfi_offset 4, -16
+ 106              		.cfi_offset 5, -12
+ 107              		.cfi_offset 6, -8
+ 108              		.cfi_offset 14, -4
+ 109 0002 0500     		movs	r5, r0
+ 110              	.LVL8:
+ 111              	.LBB2:
+  39:Generated_Source\PSoC4/NeoPixel_sled.c **** for( uint8_t bit =8 ; bit > 0 ; bit-- ) {
+ 112              		.loc 1 39 0
+ 113 0004 0824     		movs	r4, #8
+ 114 0006 09E0     		b	.L7
+ 115              	.LVL9:
+ 116              	.L8:
+  40:Generated_Source\PSoC4/NeoPixel_sled.c ****     NeoPixel_sendBit( (byte>>bit)&0x01u );   ; // Neopixel wants bit in highest-to-lowest 
+ 117              		.loc 1 40 0 discriminator 3
+ 118 0008 2B00     		movs	r3, r5
+ 119 000a 2341     		asrs	r3, r3, r4
+ 120 000c 0120     		movs	r0, #1
+ 121 000e 1840     		ands	r0, r3
+ 122 0010 FFF7FEFF 		bl	NeoPixel_sendBit
+ 123              	.LVL10:
+  41:Generated_Source\PSoC4/NeoPixel_sled.c ****     byte <<= 1;                            
+ 124              		.loc 1 41 0 discriminator 3
+ 125 0014 6D00     		lsls	r5, r5, #1
+ 126              	.LVL11:
+ 127 0016 EDB2     		uxtb	r5, r5
+ 128              	.LVL12:
+  39:Generated_Source\PSoC4/NeoPixel_sled.c **** for( uint8_t bit =8 ; bit > 0 ; bit-- ) {
+ 129              		.loc 1 39 0 discriminator 3
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 4
+
+
+ 130 0018 013C     		subs	r4, r4, #1
+ 131              	.LVL13:
+ 132 001a E4B2     		uxtb	r4, r4
+ 133              	.LVL14:
+ 134              	.L7:
+  39:Generated_Source\PSoC4/NeoPixel_sled.c **** for( uint8_t bit =8 ; bit > 0 ; bit-- ) {
+ 135              		.loc 1 39 0 is_stmt 0 discriminator 1
+ 136 001c 002C     		cmp	r4, #0
+ 137 001e F3D1     		bne	.L8
+ 138              	.LBE2:
+  42:Generated_Source\PSoC4/NeoPixel_sled.c ****   }
+  43:Generated_Source\PSoC4/NeoPixel_sled.c **** }
+ 139              		.loc 1 43 0 is_stmt 1
+ 140              		@ sp needed
+ 141              	.LVL15:
+ 142              	.LVL16:
+ 143 0020 70BD     		pop	{r4, r5, r6, pc}
+ 144              		.cfi_endproc
+ 145              	.LFE1:
+ 146              		.size	NeoPixel_sendByte, .-NeoPixel_sendByte
+ 147 0022 C046     		.section	.text.NeoPixel_sendPixel,"ax",%progbits
+ 148              		.align	2
+ 149              		.global	NeoPixel_sendPixel
+ 150              		.code	16
+ 151              		.thumb_func
+ 152              		.type	NeoPixel_sendPixel, %function
+ 153              	NeoPixel_sendPixel:
+ 154              	.LFB2:
+  44:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  45:Generated_Source\PSoC4/NeoPixel_sled.c **** /*
+  46:Generated_Source\PSoC4/NeoPixel_sled.c ****   The following three functions are the public API:  
+  47:Generated_Source\PSoC4/NeoPixel_sled.c ****   ledSetup() - set up the pin that is connected to the string. Call once at the begining of the pro
+  48:Generated_Source\PSoC4/NeoPixel_sled.c ****   sendPixel( r g , b ) - send a single pixel to the string. Call this once for each pixel in a fram
+  49:Generated_Source\PSoC4/NeoPixel_sled.c ****   show() - show the recently sent pixel on the LEDs . Call once per frame.   
+  50:Generated_Source\PSoC4/NeoPixel_sled.c **** */
+  51:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  52:Generated_Source\PSoC4/NeoPixel_sled.c **** void NeoPixel_sendPixel(uint8_t r, uint8_t g, uint8_t b)
+  53:Generated_Source\PSoC4/NeoPixel_sled.c **** {
+ 155              		.loc 1 53 0
+ 156              		.cfi_startproc
+ 157              		@ args = 0, pretend = 0, frame = 0
+ 158              		@ frame_needed = 0, uses_anonymous_args = 0
+ 159              	.LVL17:
+ 160 0000 70B5     		push	{r4, r5, r6, lr}
+ 161              		.cfi_def_cfa_offset 16
+ 162              		.cfi_offset 4, -16
+ 163              		.cfi_offset 5, -12
+ 164              		.cfi_offset 6, -8
+ 165              		.cfi_offset 14, -4
+ 166 0002 0500     		movs	r5, r0
+ 167 0004 1400     		movs	r4, r2
+  54:Generated_Source\PSoC4/NeoPixel_sled.c ****   NeoPixel_sendByte(g); // Neopixel wants colors in green then red then blue order
+ 168              		.loc 1 54 0
+ 169 0006 0800     		movs	r0, r1
+ 170              	.LVL18:
+ 171 0008 FFF7FEFF 		bl	NeoPixel_sendByte
+ 172              	.LVL19:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 5
+
+
+  55:Generated_Source\PSoC4/NeoPixel_sled.c ****   NeoPixel_sendByte(r);
+ 173              		.loc 1 55 0
+ 174 000c 2800     		movs	r0, r5
+ 175 000e FFF7FEFF 		bl	NeoPixel_sendByte
+ 176              	.LVL20:
+  56:Generated_Source\PSoC4/NeoPixel_sled.c ****   NeoPixel_sendByte(b);
+ 177              		.loc 1 56 0
+ 178 0012 2000     		movs	r0, r4
+ 179 0014 FFF7FEFF 		bl	NeoPixel_sendByte
+ 180              	.LVL21:
+  57:Generated_Source\PSoC4/NeoPixel_sled.c **** }
+ 181              		.loc 1 57 0
+ 182              		@ sp needed
+ 183 0018 70BD     		pop	{r4, r5, r6, pc}
+ 184              		.cfi_endproc
+ 185              	.LFE2:
+ 186              		.size	NeoPixel_sendPixel, .-NeoPixel_sendPixel
+ 187 001a C046     		.section	.text.NeoPixel_show,"ax",%progbits
+ 188              		.align	2
+ 189              		.global	NeoPixel_show
+ 190              		.code	16
+ 191              		.thumb_func
+ 192              		.type	NeoPixel_show, %function
+ 193              	NeoPixel_show:
+ 194              	.LFB3:
+  58:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  59:Generated_Source\PSoC4/NeoPixel_sled.c **** // Just wait long enough without sending any bots to cause the pixels to latch and display the last
+  60:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  61:Generated_Source\PSoC4/NeoPixel_sled.c **** void NeoPixel_show()
+  62:Generated_Source\PSoC4/NeoPixel_sled.c **** {
+ 195              		.loc 1 62 0
+ 196              		.cfi_startproc
+ 197              		@ args = 0, pretend = 0, frame = 0
+ 198              		@ frame_needed = 0, uses_anonymous_args = 0
+ 199 0000 10B5     		push	{r4, lr}
+ 200              		.cfi_def_cfa_offset 8
+ 201              		.cfi_offset 4, -8
+ 202              		.cfi_offset 14, -4
+  63:Generated_Source\PSoC4/NeoPixel_sled.c ****   CyDelayUs(RES ); // Round up since the delay must be _at_least_ this long (too short might not wo
+ 203              		.loc 1 63 0
+ 204 0002 8220     		movs	r0, #130
+ 205 0004 4000     		lsls	r0, r0, #1
+ 206 0006 FFF7FEFF 		bl	CyDelayUs
+ 207              	.LVL22:
+  64:Generated_Source\PSoC4/NeoPixel_sled.c **** }
+ 208              		.loc 1 64 0
+ 209              		@ sp needed
+ 210 000a 10BD     		pop	{r4, pc}
+ 211              		.cfi_endproc
+ 212              	.LFE3:
+ 213              		.size	NeoPixel_show, .-NeoPixel_show
+ 214              		.section	.text.NeoPixel_Init,"ax",%progbits
+ 215              		.align	2
+ 216              		.global	NeoPixel_Init
+ 217              		.code	16
+ 218              		.thumb_func
+ 219              		.type	NeoPixel_Init, %function
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 6
+
+
+ 220              	NeoPixel_Init:
+ 221              	.LFB4:
+  65:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  66:Generated_Source\PSoC4/NeoPixel_sled.c **** void NeoPixel_Init(void)
+  67:Generated_Source\PSoC4/NeoPixel_sled.c **** {
+ 222              		.loc 1 67 0
+ 223              		.cfi_startproc
+ 224              		@ args = 0, pretend = 0, frame = 0
+ 225              		@ frame_needed = 0, uses_anonymous_args = 0
+ 226              		@ link register save eliminated.
+  68:Generated_Source\PSoC4/NeoPixel_sled.c **** 
+  69:Generated_Source\PSoC4/NeoPixel_sled.c **** }
+ 227              		.loc 1 69 0
+ 228              		@ sp needed
+ 229 0000 7047     		bx	lr
+ 230              		.cfi_endproc
+ 231              	.LFE4:
+ 232              		.size	NeoPixel_Init, .-NeoPixel_Init
+ 233 0002 C046     		.text
+ 234              	.Letext0:
+ 235              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.4\\psoc creator\\import\\gnu\\arm\\5.4.
+ 236              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.4\\psoc creator\\import\\gnu\\arm\\5.4.
+ 237              		.file 4 "Generated_Source\\PSoC4\\cytypes.h"
+ 238              		.file 5 "Generated_Source\\PSoC4\\CyLib.h"
+ 239              		.section	.debug_info,"",%progbits
+ 240              	.Ldebug_info0:
+ 241 0000 2A020000 		.4byte	0x22a
+ 242 0004 0400     		.2byte	0x4
+ 243 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 244 000a 04       		.byte	0x4
+ 245 000b 01       		.uleb128 0x1
+ 246 000c 23010000 		.4byte	.LASF26
+ 247 0010 0C       		.byte	0xc
+ 248 0011 D7010000 		.4byte	.LASF27
+ 249 0015 DA000000 		.4byte	.LASF28
+ 250 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 251 001d 00000000 		.4byte	0
+ 252 0021 00000000 		.4byte	.Ldebug_line0
+ 253 0025 02       		.uleb128 0x2
+ 254 0026 04       		.byte	0x4
+ 255 0027 05       		.byte	0x5
+ 256 0028 696E7400 		.ascii	"int\000"
+ 257 002c 03       		.uleb128 0x3
+ 258 002d 04       		.byte	0x4
+ 259 002e 07       		.byte	0x7
+ 260 002f CD000000 		.4byte	.LASF0
+ 261 0033 03       		.uleb128 0x3
+ 262 0034 08       		.byte	0x8
+ 263 0035 05       		.byte	0x5
+ 264 0036 BA010000 		.4byte	.LASF1
+ 265 003a 03       		.uleb128 0x3
+ 266 003b 08       		.byte	0x8
+ 267 003c 04       		.byte	0x4
+ 268 003d 07020000 		.4byte	.LASF2
+ 269 0041 03       		.uleb128 0x3
+ 270 0042 01       		.byte	0x1
+ 271 0043 06       		.byte	0x6
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 7
+
+
+ 272 0044 13020000 		.4byte	.LASF3
+ 273 0048 04       		.uleb128 0x4
+ 274 0049 06000000 		.4byte	.LASF10
+ 275 004d 02       		.byte	0x2
+ 276 004e 1D       		.byte	0x1d
+ 277 004f 53000000 		.4byte	0x53
+ 278 0053 03       		.uleb128 0x3
+ 279 0054 01       		.byte	0x1
+ 280 0055 08       		.byte	0x8
+ 281 0056 66000000 		.4byte	.LASF4
+ 282 005a 03       		.uleb128 0x3
+ 283 005b 02       		.byte	0x2
+ 284 005c 05       		.byte	0x5
+ 285 005d CD010000 		.4byte	.LASF5
+ 286 0061 03       		.uleb128 0x3
+ 287 0062 02       		.byte	0x2
+ 288 0063 07       		.byte	0x7
+ 289 0064 94000000 		.4byte	.LASF6
+ 290 0068 03       		.uleb128 0x3
+ 291 0069 04       		.byte	0x4
+ 292 006a 05       		.byte	0x5
+ 293 006b FE010000 		.4byte	.LASF7
+ 294 006f 03       		.uleb128 0x3
+ 295 0070 04       		.byte	0x4
+ 296 0071 07       		.byte	0x7
+ 297 0072 82000000 		.4byte	.LASF8
+ 298 0076 03       		.uleb128 0x3
+ 299 0077 08       		.byte	0x8
+ 300 0078 07       		.byte	0x7
+ 301 0079 04010000 		.4byte	.LASF9
+ 302 007d 04       		.uleb128 0x4
+ 303 007e 1B010000 		.4byte	.LASF11
+ 304 0082 03       		.byte	0x3
+ 305 0083 18       		.byte	0x18
+ 306 0084 48000000 		.4byte	0x48
+ 307 0088 05       		.uleb128 0x5
+ 308 0089 C6000000 		.4byte	.LASF12
+ 309 008d 04       		.byte	0x4
+ 310 008e FD01     		.2byte	0x1fd
+ 311 0090 6F000000 		.4byte	0x6f
+ 312 0094 03       		.uleb128 0x3
+ 313 0095 04       		.byte	0x4
+ 314 0096 04       		.byte	0x4
+ 315 0097 60000000 		.4byte	.LASF13
+ 316 009b 03       		.uleb128 0x3
+ 317 009c 08       		.byte	0x8
+ 318 009d 04       		.byte	0x4
+ 319 009e B5000000 		.4byte	.LASF14
+ 320 00a2 03       		.uleb128 0x3
+ 321 00a3 01       		.byte	0x1
+ 322 00a4 08       		.byte	0x8
+ 323 00a5 C8010000 		.4byte	.LASF15
+ 324 00a9 05       		.uleb128 0x5
+ 325 00aa 00000000 		.4byte	.LASF16
+ 326 00ae 04       		.byte	0x4
+ 327 00af A702     		.2byte	0x2a7
+ 328 00b1 B5000000 		.4byte	0xb5
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 8
+
+
+ 329 00b5 06       		.uleb128 0x6
+ 330 00b6 88000000 		.4byte	0x88
+ 331 00ba 03       		.uleb128 0x3
+ 332 00bb 04       		.byte	0x4
+ 333 00bc 07       		.byte	0x7
+ 334 00bd B1010000 		.4byte	.LASF17
+ 335 00c1 07       		.uleb128 0x7
+ 336 00c2 4F000000 		.4byte	.LASF19
+ 337 00c6 01       		.byte	0x1
+ 338 00c7 14       		.byte	0x14
+ 339 00c8 00000000 		.4byte	.LFB0
+ 340 00cc 40000000 		.4byte	.LFE0-.LFB0
+ 341 00d0 01       		.uleb128 0x1
+ 342 00d1 9C       		.byte	0x9c
+ 343 00d2 1B010000 		.4byte	0x11b
+ 344 00d6 08       		.uleb128 0x8
+ 345 00d7 43000000 		.4byte	.LASF21
+ 346 00db 01       		.byte	0x1
+ 347 00dc 14       		.byte	0x14
+ 348 00dd 1B010000 		.4byte	0x11b
+ 349 00e1 00000000 		.4byte	.LLST0
+ 350 00e5 09       		.uleb128 0x9
+ 351 00e6 16000000 		.4byte	.LVL2
+ 352 00ea 17020000 		.4byte	0x217
+ 353 00ee F8000000 		.4byte	0xf8
+ 354 00f2 0A       		.uleb128 0xa
+ 355 00f3 01       		.uleb128 0x1
+ 356 00f4 50       		.byte	0x50
+ 357 00f5 01       		.uleb128 0x1
+ 358 00f6 32       		.byte	0x32
+ 359 00f7 00       		.byte	0
+ 360 00f8 09       		.uleb128 0x9
+ 361 00f9 22000000 		.4byte	.LVL3
+ 362 00fd 17020000 		.4byte	0x217
+ 363 0101 0B010000 		.4byte	0x10b
+ 364 0105 0A       		.uleb128 0xa
+ 365 0106 01       		.uleb128 0x1
+ 366 0107 50       		.byte	0x50
+ 367 0108 01       		.uleb128 0x1
+ 368 0109 31       		.byte	0x31
+ 369 010a 00       		.byte	0
+ 370 010b 0B       		.uleb128 0xb
+ 371 010c 3A000000 		.4byte	.LVL6
+ 372 0110 17020000 		.4byte	0x217
+ 373 0114 0A       		.uleb128 0xa
+ 374 0115 01       		.uleb128 0x1
+ 375 0116 50       		.byte	0x50
+ 376 0117 01       		.uleb128 0x1
+ 377 0118 31       		.byte	0x31
+ 378 0119 00       		.byte	0
+ 379 011a 00       		.byte	0
+ 380 011b 03       		.uleb128 0x3
+ 381 011c 01       		.byte	0x1
+ 382 011d 02       		.byte	0x2
+ 383 011e 1F020000 		.4byte	.LASF18
+ 384 0122 07       		.uleb128 0x7
+ 385 0123 1E000000 		.4byte	.LASF20
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 9
+
+
+ 386 0127 01       		.byte	0x1
+ 387 0128 25       		.byte	0x25
+ 388 0129 00000000 		.4byte	.LFB1
+ 389 012d 22000000 		.4byte	.LFE1-.LFB1
+ 390 0131 01       		.uleb128 0x1
+ 391 0132 9C       		.byte	0x9c
+ 392 0133 75010000 		.4byte	0x175
+ 393 0137 08       		.uleb128 0x8
+ 394 0138 4A000000 		.4byte	.LASF22
+ 395 013c 01       		.byte	0x1
+ 396 013d 25       		.byte	0x25
+ 397 013e 7D000000 		.4byte	0x7d
+ 398 0142 3A000000 		.4byte	.LLST1
+ 399 0146 0C       		.uleb128 0xc
+ 400 0147 04000000 		.4byte	.LBB2
+ 401 014b 1C000000 		.4byte	.LBE2-.LBB2
+ 402 014f 0D       		.uleb128 0xd
+ 403 0150 62697400 		.ascii	"bit\000"
+ 404 0154 01       		.byte	0x1
+ 405 0155 27       		.byte	0x27
+ 406 0156 7D000000 		.4byte	0x7d
+ 407 015a 63000000 		.4byte	.LLST2
+ 408 015e 0B       		.uleb128 0xb
+ 409 015f 14000000 		.4byte	.LVL10
+ 410 0163 C1000000 		.4byte	0xc1
+ 411 0167 0A       		.uleb128 0xa
+ 412 0168 01       		.uleb128 0x1
+ 413 0169 50       		.byte	0x50
+ 414 016a 07       		.uleb128 0x7
+ 415 016b 75       		.byte	0x75
+ 416 016c 00       		.sleb128 0
+ 417 016d 74       		.byte	0x74
+ 418 016e 00       		.sleb128 0
+ 419 016f 26       		.byte	0x26
+ 420 0170 31       		.byte	0x31
+ 421 0171 1A       		.byte	0x1a
+ 422 0172 00       		.byte	0
+ 423 0173 00       		.byte	0
+ 424 0174 00       		.byte	0
+ 425 0175 07       		.uleb128 0x7
+ 426 0176 30000000 		.4byte	.LASF23
+ 427 017a 01       		.byte	0x1
+ 428 017b 34       		.byte	0x34
+ 429 017c 00000000 		.4byte	.LFB2
+ 430 0180 1A000000 		.4byte	.LFE2-.LFB2
+ 431 0184 01       		.uleb128 0x1
+ 432 0185 9C       		.byte	0x9c
+ 433 0186 DF010000 		.4byte	0x1df
+ 434 018a 0E       		.uleb128 0xe
+ 435 018b 7200     		.ascii	"r\000"
+ 436 018d 01       		.byte	0x1
+ 437 018e 34       		.byte	0x34
+ 438 018f 7D000000 		.4byte	0x7d
+ 439 0193 8D000000 		.4byte	.LLST3
+ 440 0197 0E       		.uleb128 0xe
+ 441 0198 6700     		.ascii	"g\000"
+ 442 019a 01       		.byte	0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 10
+
+
+ 443 019b 34       		.byte	0x34
+ 444 019c 7D000000 		.4byte	0x7d
+ 445 01a0 AE000000 		.4byte	.LLST4
+ 446 01a4 0E       		.uleb128 0xe
+ 447 01a5 6200     		.ascii	"b\000"
+ 448 01a7 01       		.byte	0x1
+ 449 01a8 34       		.byte	0x34
+ 450 01a9 7D000000 		.4byte	0x7d
+ 451 01ad CF000000 		.4byte	.LLST5
+ 452 01b1 0F       		.uleb128 0xf
+ 453 01b2 0C000000 		.4byte	.LVL19
+ 454 01b6 22010000 		.4byte	0x122
+ 455 01ba 09       		.uleb128 0x9
+ 456 01bb 12000000 		.4byte	.LVL20
+ 457 01bf 22010000 		.4byte	0x122
+ 458 01c3 CE010000 		.4byte	0x1ce
+ 459 01c7 0A       		.uleb128 0xa
+ 460 01c8 01       		.uleb128 0x1
+ 461 01c9 50       		.byte	0x50
+ 462 01ca 02       		.uleb128 0x2
+ 463 01cb 75       		.byte	0x75
+ 464 01cc 00       		.sleb128 0
+ 465 01cd 00       		.byte	0
+ 466 01ce 0B       		.uleb128 0xb
+ 467 01cf 18000000 		.4byte	.LVL21
+ 468 01d3 22010000 		.4byte	0x122
+ 469 01d7 0A       		.uleb128 0xa
+ 470 01d8 01       		.uleb128 0x1
+ 471 01d9 50       		.byte	0x50
+ 472 01da 02       		.uleb128 0x2
+ 473 01db 74       		.byte	0x74
+ 474 01dc 00       		.sleb128 0
+ 475 01dd 00       		.byte	0
+ 476 01de 00       		.byte	0
+ 477 01df 10       		.uleb128 0x10
+ 478 01e0 10000000 		.4byte	.LASF29
+ 479 01e4 01       		.byte	0x1
+ 480 01e5 3D       		.byte	0x3d
+ 481 01e6 00000000 		.4byte	.LFB3
+ 482 01ea 0C000000 		.4byte	.LFE3-.LFB3
+ 483 01ee 01       		.uleb128 0x1
+ 484 01ef 9C       		.byte	0x9c
+ 485 01f0 06020000 		.4byte	0x206
+ 486 01f4 0B       		.uleb128 0xb
+ 487 01f5 0A000000 		.4byte	.LVL22
+ 488 01f9 22020000 		.4byte	0x222
+ 489 01fd 0A       		.uleb128 0xa
+ 490 01fe 01       		.uleb128 0x1
+ 491 01ff 50       		.byte	0x50
+ 492 0200 03       		.uleb128 0x3
+ 493 0201 0A       		.byte	0xa
+ 494 0202 0401     		.2byte	0x104
+ 495 0204 00       		.byte	0
+ 496 0205 00       		.byte	0
+ 497 0206 11       		.uleb128 0x11
+ 498 0207 A7000000 		.4byte	.LASF30
+ 499 020b 01       		.byte	0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 11
+
+
+ 500 020c 42       		.byte	0x42
+ 501 020d 00000000 		.4byte	.LFB4
+ 502 0211 02000000 		.4byte	.LFE4-.LFB4
+ 503 0215 01       		.uleb128 0x1
+ 504 0216 9C       		.byte	0x9c
+ 505 0217 12       		.uleb128 0x12
+ 506 0218 74000000 		.4byte	.LASF24
+ 507 021c 74000000 		.4byte	.LASF24
+ 508 0220 05       		.byte	0x5
+ 509 0221 EF       		.byte	0xef
+ 510 0222 12       		.uleb128 0x12
+ 511 0223 BC000000 		.4byte	.LASF25
+ 512 0227 BC000000 		.4byte	.LASF25
+ 513 022b 05       		.byte	0x5
+ 514 022c ED       		.byte	0xed
+ 515 022d 00       		.byte	0
+ 516              		.section	.debug_abbrev,"",%progbits
+ 517              	.Ldebug_abbrev0:
+ 518 0000 01       		.uleb128 0x1
+ 519 0001 11       		.uleb128 0x11
+ 520 0002 01       		.byte	0x1
+ 521 0003 25       		.uleb128 0x25
+ 522 0004 0E       		.uleb128 0xe
+ 523 0005 13       		.uleb128 0x13
+ 524 0006 0B       		.uleb128 0xb
+ 525 0007 03       		.uleb128 0x3
+ 526 0008 0E       		.uleb128 0xe
+ 527 0009 1B       		.uleb128 0x1b
+ 528 000a 0E       		.uleb128 0xe
+ 529 000b 55       		.uleb128 0x55
+ 530 000c 17       		.uleb128 0x17
+ 531 000d 11       		.uleb128 0x11
+ 532 000e 01       		.uleb128 0x1
+ 533 000f 10       		.uleb128 0x10
+ 534 0010 17       		.uleb128 0x17
+ 535 0011 00       		.byte	0
+ 536 0012 00       		.byte	0
+ 537 0013 02       		.uleb128 0x2
+ 538 0014 24       		.uleb128 0x24
+ 539 0015 00       		.byte	0
+ 540 0016 0B       		.uleb128 0xb
+ 541 0017 0B       		.uleb128 0xb
+ 542 0018 3E       		.uleb128 0x3e
+ 543 0019 0B       		.uleb128 0xb
+ 544 001a 03       		.uleb128 0x3
+ 545 001b 08       		.uleb128 0x8
+ 546 001c 00       		.byte	0
+ 547 001d 00       		.byte	0
+ 548 001e 03       		.uleb128 0x3
+ 549 001f 24       		.uleb128 0x24
+ 550 0020 00       		.byte	0
+ 551 0021 0B       		.uleb128 0xb
+ 552 0022 0B       		.uleb128 0xb
+ 553 0023 3E       		.uleb128 0x3e
+ 554 0024 0B       		.uleb128 0xb
+ 555 0025 03       		.uleb128 0x3
+ 556 0026 0E       		.uleb128 0xe
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 12
+
+
+ 557 0027 00       		.byte	0
+ 558 0028 00       		.byte	0
+ 559 0029 04       		.uleb128 0x4
+ 560 002a 16       		.uleb128 0x16
+ 561 002b 00       		.byte	0
+ 562 002c 03       		.uleb128 0x3
+ 563 002d 0E       		.uleb128 0xe
+ 564 002e 3A       		.uleb128 0x3a
+ 565 002f 0B       		.uleb128 0xb
+ 566 0030 3B       		.uleb128 0x3b
+ 567 0031 0B       		.uleb128 0xb
+ 568 0032 49       		.uleb128 0x49
+ 569 0033 13       		.uleb128 0x13
+ 570 0034 00       		.byte	0
+ 571 0035 00       		.byte	0
+ 572 0036 05       		.uleb128 0x5
+ 573 0037 16       		.uleb128 0x16
+ 574 0038 00       		.byte	0
+ 575 0039 03       		.uleb128 0x3
+ 576 003a 0E       		.uleb128 0xe
+ 577 003b 3A       		.uleb128 0x3a
+ 578 003c 0B       		.uleb128 0xb
+ 579 003d 3B       		.uleb128 0x3b
+ 580 003e 05       		.uleb128 0x5
+ 581 003f 49       		.uleb128 0x49
+ 582 0040 13       		.uleb128 0x13
+ 583 0041 00       		.byte	0
+ 584 0042 00       		.byte	0
+ 585 0043 06       		.uleb128 0x6
+ 586 0044 35       		.uleb128 0x35
+ 587 0045 00       		.byte	0
+ 588 0046 49       		.uleb128 0x49
+ 589 0047 13       		.uleb128 0x13
+ 590 0048 00       		.byte	0
+ 591 0049 00       		.byte	0
+ 592 004a 07       		.uleb128 0x7
+ 593 004b 2E       		.uleb128 0x2e
+ 594 004c 01       		.byte	0x1
+ 595 004d 3F       		.uleb128 0x3f
+ 596 004e 19       		.uleb128 0x19
+ 597 004f 03       		.uleb128 0x3
+ 598 0050 0E       		.uleb128 0xe
+ 599 0051 3A       		.uleb128 0x3a
+ 600 0052 0B       		.uleb128 0xb
+ 601 0053 3B       		.uleb128 0x3b
+ 602 0054 0B       		.uleb128 0xb
+ 603 0055 27       		.uleb128 0x27
+ 604 0056 19       		.uleb128 0x19
+ 605 0057 11       		.uleb128 0x11
+ 606 0058 01       		.uleb128 0x1
+ 607 0059 12       		.uleb128 0x12
+ 608 005a 06       		.uleb128 0x6
+ 609 005b 40       		.uleb128 0x40
+ 610 005c 18       		.uleb128 0x18
+ 611 005d 9742     		.uleb128 0x2117
+ 612 005f 19       		.uleb128 0x19
+ 613 0060 01       		.uleb128 0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 13
+
+
+ 614 0061 13       		.uleb128 0x13
+ 615 0062 00       		.byte	0
+ 616 0063 00       		.byte	0
+ 617 0064 08       		.uleb128 0x8
+ 618 0065 05       		.uleb128 0x5
+ 619 0066 00       		.byte	0
+ 620 0067 03       		.uleb128 0x3
+ 621 0068 0E       		.uleb128 0xe
+ 622 0069 3A       		.uleb128 0x3a
+ 623 006a 0B       		.uleb128 0xb
+ 624 006b 3B       		.uleb128 0x3b
+ 625 006c 0B       		.uleb128 0xb
+ 626 006d 49       		.uleb128 0x49
+ 627 006e 13       		.uleb128 0x13
+ 628 006f 02       		.uleb128 0x2
+ 629 0070 17       		.uleb128 0x17
+ 630 0071 00       		.byte	0
+ 631 0072 00       		.byte	0
+ 632 0073 09       		.uleb128 0x9
+ 633 0074 898201   		.uleb128 0x4109
+ 634 0077 01       		.byte	0x1
+ 635 0078 11       		.uleb128 0x11
+ 636 0079 01       		.uleb128 0x1
+ 637 007a 31       		.uleb128 0x31
+ 638 007b 13       		.uleb128 0x13
+ 639 007c 01       		.uleb128 0x1
+ 640 007d 13       		.uleb128 0x13
+ 641 007e 00       		.byte	0
+ 642 007f 00       		.byte	0
+ 643 0080 0A       		.uleb128 0xa
+ 644 0081 8A8201   		.uleb128 0x410a
+ 645 0084 00       		.byte	0
+ 646 0085 02       		.uleb128 0x2
+ 647 0086 18       		.uleb128 0x18
+ 648 0087 9142     		.uleb128 0x2111
+ 649 0089 18       		.uleb128 0x18
+ 650 008a 00       		.byte	0
+ 651 008b 00       		.byte	0
+ 652 008c 0B       		.uleb128 0xb
+ 653 008d 898201   		.uleb128 0x4109
+ 654 0090 01       		.byte	0x1
+ 655 0091 11       		.uleb128 0x11
+ 656 0092 01       		.uleb128 0x1
+ 657 0093 31       		.uleb128 0x31
+ 658 0094 13       		.uleb128 0x13
+ 659 0095 00       		.byte	0
+ 660 0096 00       		.byte	0
+ 661 0097 0C       		.uleb128 0xc
+ 662 0098 0B       		.uleb128 0xb
+ 663 0099 01       		.byte	0x1
+ 664 009a 11       		.uleb128 0x11
+ 665 009b 01       		.uleb128 0x1
+ 666 009c 12       		.uleb128 0x12
+ 667 009d 06       		.uleb128 0x6
+ 668 009e 00       		.byte	0
+ 669 009f 00       		.byte	0
+ 670 00a0 0D       		.uleb128 0xd
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 14
+
+
+ 671 00a1 34       		.uleb128 0x34
+ 672 00a2 00       		.byte	0
+ 673 00a3 03       		.uleb128 0x3
+ 674 00a4 08       		.uleb128 0x8
+ 675 00a5 3A       		.uleb128 0x3a
+ 676 00a6 0B       		.uleb128 0xb
+ 677 00a7 3B       		.uleb128 0x3b
+ 678 00a8 0B       		.uleb128 0xb
+ 679 00a9 49       		.uleb128 0x49
+ 680 00aa 13       		.uleb128 0x13
+ 681 00ab 02       		.uleb128 0x2
+ 682 00ac 17       		.uleb128 0x17
+ 683 00ad 00       		.byte	0
+ 684 00ae 00       		.byte	0
+ 685 00af 0E       		.uleb128 0xe
+ 686 00b0 05       		.uleb128 0x5
+ 687 00b1 00       		.byte	0
+ 688 00b2 03       		.uleb128 0x3
+ 689 00b3 08       		.uleb128 0x8
+ 690 00b4 3A       		.uleb128 0x3a
+ 691 00b5 0B       		.uleb128 0xb
+ 692 00b6 3B       		.uleb128 0x3b
+ 693 00b7 0B       		.uleb128 0xb
+ 694 00b8 49       		.uleb128 0x49
+ 695 00b9 13       		.uleb128 0x13
+ 696 00ba 02       		.uleb128 0x2
+ 697 00bb 17       		.uleb128 0x17
+ 698 00bc 00       		.byte	0
+ 699 00bd 00       		.byte	0
+ 700 00be 0F       		.uleb128 0xf
+ 701 00bf 898201   		.uleb128 0x4109
+ 702 00c2 00       		.byte	0
+ 703 00c3 11       		.uleb128 0x11
+ 704 00c4 01       		.uleb128 0x1
+ 705 00c5 31       		.uleb128 0x31
+ 706 00c6 13       		.uleb128 0x13
+ 707 00c7 00       		.byte	0
+ 708 00c8 00       		.byte	0
+ 709 00c9 10       		.uleb128 0x10
+ 710 00ca 2E       		.uleb128 0x2e
+ 711 00cb 01       		.byte	0x1
+ 712 00cc 3F       		.uleb128 0x3f
+ 713 00cd 19       		.uleb128 0x19
+ 714 00ce 03       		.uleb128 0x3
+ 715 00cf 0E       		.uleb128 0xe
+ 716 00d0 3A       		.uleb128 0x3a
+ 717 00d1 0B       		.uleb128 0xb
+ 718 00d2 3B       		.uleb128 0x3b
+ 719 00d3 0B       		.uleb128 0xb
+ 720 00d4 11       		.uleb128 0x11
+ 721 00d5 01       		.uleb128 0x1
+ 722 00d6 12       		.uleb128 0x12
+ 723 00d7 06       		.uleb128 0x6
+ 724 00d8 40       		.uleb128 0x40
+ 725 00d9 18       		.uleb128 0x18
+ 726 00da 9742     		.uleb128 0x2117
+ 727 00dc 19       		.uleb128 0x19
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 15
+
+
+ 728 00dd 01       		.uleb128 0x1
+ 729 00de 13       		.uleb128 0x13
+ 730 00df 00       		.byte	0
+ 731 00e0 00       		.byte	0
+ 732 00e1 11       		.uleb128 0x11
+ 733 00e2 2E       		.uleb128 0x2e
+ 734 00e3 00       		.byte	0
+ 735 00e4 3F       		.uleb128 0x3f
+ 736 00e5 19       		.uleb128 0x19
+ 737 00e6 03       		.uleb128 0x3
+ 738 00e7 0E       		.uleb128 0xe
+ 739 00e8 3A       		.uleb128 0x3a
+ 740 00e9 0B       		.uleb128 0xb
+ 741 00ea 3B       		.uleb128 0x3b
+ 742 00eb 0B       		.uleb128 0xb
+ 743 00ec 27       		.uleb128 0x27
+ 744 00ed 19       		.uleb128 0x19
+ 745 00ee 11       		.uleb128 0x11
+ 746 00ef 01       		.uleb128 0x1
+ 747 00f0 12       		.uleb128 0x12
+ 748 00f1 06       		.uleb128 0x6
+ 749 00f2 40       		.uleb128 0x40
+ 750 00f3 18       		.uleb128 0x18
+ 751 00f4 9742     		.uleb128 0x2117
+ 752 00f6 19       		.uleb128 0x19
+ 753 00f7 00       		.byte	0
+ 754 00f8 00       		.byte	0
+ 755 00f9 12       		.uleb128 0x12
+ 756 00fa 2E       		.uleb128 0x2e
+ 757 00fb 00       		.byte	0
+ 758 00fc 3F       		.uleb128 0x3f
+ 759 00fd 19       		.uleb128 0x19
+ 760 00fe 3C       		.uleb128 0x3c
+ 761 00ff 19       		.uleb128 0x19
+ 762 0100 6E       		.uleb128 0x6e
+ 763 0101 0E       		.uleb128 0xe
+ 764 0102 03       		.uleb128 0x3
+ 765 0103 0E       		.uleb128 0xe
+ 766 0104 3A       		.uleb128 0x3a
+ 767 0105 0B       		.uleb128 0xb
+ 768 0106 3B       		.uleb128 0x3b
+ 769 0107 0B       		.uleb128 0xb
+ 770 0108 00       		.byte	0
+ 771 0109 00       		.byte	0
+ 772 010a 00       		.byte	0
+ 773              		.section	.debug_loc,"",%progbits
+ 774              	.Ldebug_loc0:
+ 775              	.LLST0:
+ 776 0000 00000000 		.4byte	.LVL0
+ 777 0004 12000000 		.4byte	.LVL1
+ 778 0008 0100     		.2byte	0x1
+ 779 000a 50       		.byte	0x50
+ 780 000b 12000000 		.4byte	.LVL1
+ 781 000f 24000000 		.4byte	.LVL4
+ 782 0013 0400     		.2byte	0x4
+ 783 0015 F3       		.byte	0xf3
+ 784 0016 01       		.uleb128 0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 16
+
+
+ 785 0017 50       		.byte	0x50
+ 786 0018 9F       		.byte	0x9f
+ 787 0019 24000000 		.4byte	.LVL4
+ 788 001d 36000000 		.4byte	.LVL5
+ 789 0021 0100     		.2byte	0x1
+ 790 0023 50       		.byte	0x50
+ 791 0024 36000000 		.4byte	.LVL5
+ 792 0028 40000000 		.4byte	.LFE0
+ 793 002c 0400     		.2byte	0x4
+ 794 002e F3       		.byte	0xf3
+ 795 002f 01       		.uleb128 0x1
+ 796 0030 50       		.byte	0x50
+ 797 0031 9F       		.byte	0x9f
+ 798 0032 00000000 		.4byte	0
+ 799 0036 00000000 		.4byte	0
+ 800              	.LLST1:
+ 801 003a 00000000 		.4byte	.LVL7
+ 802 003e 08000000 		.4byte	.LVL9
+ 803 0042 0100     		.2byte	0x1
+ 804 0044 50       		.byte	0x50
+ 805 0045 08000000 		.4byte	.LVL9
+ 806 0049 16000000 		.4byte	.LVL11
+ 807 004d 0100     		.2byte	0x1
+ 808 004f 55       		.byte	0x55
+ 809 0050 18000000 		.4byte	.LVL12
+ 810 0054 20000000 		.4byte	.LVL16
+ 811 0058 0100     		.2byte	0x1
+ 812 005a 55       		.byte	0x55
+ 813 005b 00000000 		.4byte	0
+ 814 005f 00000000 		.4byte	0
+ 815              	.LLST2:
+ 816 0063 04000000 		.4byte	.LVL8
+ 817 0067 08000000 		.4byte	.LVL9
+ 818 006b 0200     		.2byte	0x2
+ 819 006d 38       		.byte	0x38
+ 820 006e 9F       		.byte	0x9f
+ 821 006f 08000000 		.4byte	.LVL9
+ 822 0073 1A000000 		.4byte	.LVL13
+ 823 0077 0100     		.2byte	0x1
+ 824 0079 54       		.byte	0x54
+ 825 007a 1C000000 		.4byte	.LVL14
+ 826 007e 20000000 		.4byte	.LVL15
+ 827 0082 0100     		.2byte	0x1
+ 828 0084 54       		.byte	0x54
+ 829 0085 00000000 		.4byte	0
+ 830 0089 00000000 		.4byte	0
+ 831              	.LLST3:
+ 832 008d 00000000 		.4byte	.LVL17
+ 833 0091 08000000 		.4byte	.LVL18
+ 834 0095 0100     		.2byte	0x1
+ 835 0097 50       		.byte	0x50
+ 836 0098 08000000 		.4byte	.LVL18
+ 837 009c 1A000000 		.4byte	.LFE2
+ 838 00a0 0400     		.2byte	0x4
+ 839 00a2 F3       		.byte	0xf3
+ 840 00a3 01       		.uleb128 0x1
+ 841 00a4 50       		.byte	0x50
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 17
+
+
+ 842 00a5 9F       		.byte	0x9f
+ 843 00a6 00000000 		.4byte	0
+ 844 00aa 00000000 		.4byte	0
+ 845              	.LLST4:
+ 846 00ae 00000000 		.4byte	.LVL17
+ 847 00b2 0B000000 		.4byte	.LVL19-1
+ 848 00b6 0100     		.2byte	0x1
+ 849 00b8 51       		.byte	0x51
+ 850 00b9 0B000000 		.4byte	.LVL19-1
+ 851 00bd 1A000000 		.4byte	.LFE2
+ 852 00c1 0400     		.2byte	0x4
+ 853 00c3 F3       		.byte	0xf3
+ 854 00c4 01       		.uleb128 0x1
+ 855 00c5 51       		.byte	0x51
+ 856 00c6 9F       		.byte	0x9f
+ 857 00c7 00000000 		.4byte	0
+ 858 00cb 00000000 		.4byte	0
+ 859              	.LLST5:
+ 860 00cf 00000000 		.4byte	.LVL17
+ 861 00d3 0B000000 		.4byte	.LVL19-1
+ 862 00d7 0100     		.2byte	0x1
+ 863 00d9 52       		.byte	0x52
+ 864 00da 0B000000 		.4byte	.LVL19-1
+ 865 00de 1A000000 		.4byte	.LFE2
+ 866 00e2 0400     		.2byte	0x4
+ 867 00e4 F3       		.byte	0xf3
+ 868 00e5 01       		.uleb128 0x1
+ 869 00e6 52       		.byte	0x52
+ 870 00e7 9F       		.byte	0x9f
+ 871 00e8 00000000 		.4byte	0
+ 872 00ec 00000000 		.4byte	0
+ 873              		.section	.debug_aranges,"",%progbits
+ 874 0000 3C000000 		.4byte	0x3c
+ 875 0004 0200     		.2byte	0x2
+ 876 0006 00000000 		.4byte	.Ldebug_info0
+ 877 000a 04       		.byte	0x4
+ 878 000b 00       		.byte	0
+ 879 000c 0000     		.2byte	0
+ 880 000e 0000     		.2byte	0
+ 881 0010 00000000 		.4byte	.LFB0
+ 882 0014 40000000 		.4byte	.LFE0-.LFB0
+ 883 0018 00000000 		.4byte	.LFB1
+ 884 001c 22000000 		.4byte	.LFE1-.LFB1
+ 885 0020 00000000 		.4byte	.LFB2
+ 886 0024 1A000000 		.4byte	.LFE2-.LFB2
+ 887 0028 00000000 		.4byte	.LFB3
+ 888 002c 0C000000 		.4byte	.LFE3-.LFB3
+ 889 0030 00000000 		.4byte	.LFB4
+ 890 0034 02000000 		.4byte	.LFE4-.LFB4
+ 891 0038 00000000 		.4byte	0
+ 892 003c 00000000 		.4byte	0
+ 893              		.section	.debug_ranges,"",%progbits
+ 894              	.Ldebug_ranges0:
+ 895 0000 00000000 		.4byte	.LFB0
+ 896 0004 40000000 		.4byte	.LFE0
+ 897 0008 00000000 		.4byte	.LFB1
+ 898 000c 22000000 		.4byte	.LFE1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 18
+
+
+ 899 0010 00000000 		.4byte	.LFB2
+ 900 0014 1A000000 		.4byte	.LFE2
+ 901 0018 00000000 		.4byte	.LFB3
+ 902 001c 0C000000 		.4byte	.LFE3
+ 903 0020 00000000 		.4byte	.LFB4
+ 904 0024 02000000 		.4byte	.LFE4
+ 905 0028 00000000 		.4byte	0
+ 906 002c 00000000 		.4byte	0
+ 907              		.section	.debug_line,"",%progbits
+ 908              	.Ldebug_line0:
+ 909 0000 CC010000 		.section	.debug_str,"MS",%progbits,1
+ 909      02005201 
+ 909      00000201 
+ 909      FB0E0D00 
+ 909      01010101 
+ 910              	.LASF16:
+ 911 0000 72656733 		.ascii	"reg32\000"
+ 911      3200
+ 912              	.LASF10:
+ 913 0006 5F5F7569 		.ascii	"__uint8_t\000"
+ 913      6E74385F 
+ 913      7400
+ 914              	.LASF29:
+ 915 0010 4E656F50 		.ascii	"NeoPixel_show\000"
+ 915      6978656C 
+ 915      5F73686F 
+ 915      7700
+ 916              	.LASF20:
+ 917 001e 4E656F50 		.ascii	"NeoPixel_sendByte\000"
+ 917      6978656C 
+ 917      5F73656E 
+ 917      64427974 
+ 917      6500
+ 918              	.LASF23:
+ 919 0030 4E656F50 		.ascii	"NeoPixel_sendPixel\000"
+ 919      6978656C 
+ 919      5F73656E 
+ 919      64506978 
+ 919      656C00
+ 920              	.LASF21:
+ 921 0043 62697456 		.ascii	"bitVal\000"
+ 921      616C00
+ 922              	.LASF22:
+ 923 004a 62797465 		.ascii	"byte\000"
+ 923      00
+ 924              	.LASF19:
+ 925 004f 4E656F50 		.ascii	"NeoPixel_sendBit\000"
+ 925      6978656C 
+ 925      5F73656E 
+ 925      64426974 
+ 925      00
+ 926              	.LASF13:
+ 927 0060 666C6F61 		.ascii	"float\000"
+ 927      7400
+ 928              	.LASF4:
+ 929 0066 756E7369 		.ascii	"unsigned char\000"
+ 929      676E6564 
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 19
+
+
+ 929      20636861 
+ 929      7200
+ 930              	.LASF24:
+ 931 0074 43794465 		.ascii	"CyDelayCycles\000"
+ 931      6C617943 
+ 931      79636C65 
+ 931      7300
+ 932              	.LASF8:
+ 933 0082 6C6F6E67 		.ascii	"long unsigned int\000"
+ 933      20756E73 
+ 933      69676E65 
+ 933      6420696E 
+ 933      7400
+ 934              	.LASF6:
+ 935 0094 73686F72 		.ascii	"short unsigned int\000"
+ 935      7420756E 
+ 935      7369676E 
+ 935      65642069 
+ 935      6E7400
+ 936              	.LASF30:
+ 937 00a7 4E656F50 		.ascii	"NeoPixel_Init\000"
+ 937      6978656C 
+ 937      5F496E69 
+ 937      7400
+ 938              	.LASF14:
+ 939 00b5 646F7562 		.ascii	"double\000"
+ 939      6C6500
+ 940              	.LASF25:
+ 941 00bc 43794465 		.ascii	"CyDelayUs\000"
+ 941      6C617955 
+ 941      7300
+ 942              	.LASF12:
+ 943 00c6 75696E74 		.ascii	"uint32\000"
+ 943      333200
+ 944              	.LASF0:
+ 945 00cd 756E7369 		.ascii	"unsigned int\000"
+ 945      676E6564 
+ 945      20696E74 
+ 945      00
+ 946              	.LASF28:
+ 947 00da 443A5C45 		.ascii	"D:\\EE\\GitHub\\Psoc\\NeoPixel\\NeoPixel.cydsn\000"
+ 947      455C4769 
+ 947      74487562 
+ 947      5C50736F 
+ 947      635C4E65 
+ 948              	.LASF9:
+ 949 0104 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 949      206C6F6E 
+ 949      6720756E 
+ 949      7369676E 
+ 949      65642069 
+ 950              	.LASF11:
+ 951 011b 75696E74 		.ascii	"uint8_t\000"
+ 951      385F7400 
+ 952              	.LASF26:
+ 953 0123 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 953      43313120 
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccnjzBkb.s 			page 20
+
+
+ 953      352E342E 
+ 953      31203230 
+ 953      31363036 
+ 954 0156 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 954      20726576 
+ 954      6973696F 
+ 954      6E203233 
+ 954      37373135 
+ 955 0189 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 955      66756E63 
+ 955      74696F6E 
+ 955      2D736563 
+ 955      74696F6E 
+ 956              	.LASF17:
+ 957 01b1 73697A65 		.ascii	"sizetype\000"
+ 957      74797065 
+ 957      00
+ 958              	.LASF1:
+ 959 01ba 6C6F6E67 		.ascii	"long long int\000"
+ 959      206C6F6E 
+ 959      6720696E 
+ 959      7400
+ 960              	.LASF15:
+ 961 01c8 63686172 		.ascii	"char\000"
+ 961      00
+ 962              	.LASF5:
+ 963 01cd 73686F72 		.ascii	"short int\000"
+ 963      7420696E 
+ 963      7400
+ 964              	.LASF27:
+ 965 01d7 47656E65 		.ascii	"Generated_Source\\PSoC4\\NeoPixel_sled.c\000"
+ 965      72617465 
+ 965      645F536F 
+ 965      75726365 
+ 965      5C50536F 
+ 966              	.LASF7:
+ 967 01fe 6C6F6E67 		.ascii	"long int\000"
+ 967      20696E74 
+ 967      00
+ 968              	.LASF2:
+ 969 0207 6C6F6E67 		.ascii	"long double\000"
+ 969      20646F75 
+ 969      626C6500 
+ 970              	.LASF3:
+ 971 0213 7369676E 		.ascii	"signed char\000"
+ 971      65642063 
+ 971      68617200 
+ 972              	.LASF18:
+ 973 021f 5F426F6F 		.ascii	"_Bool\000"
+ 973      6C00
+ 974              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

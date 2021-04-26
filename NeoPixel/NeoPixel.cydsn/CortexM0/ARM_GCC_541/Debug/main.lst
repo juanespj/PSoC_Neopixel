@@ -1,0 +1,4578 @@
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"main.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.showColor,"ax",%progbits
+  20              		.align	2
+  21              		.global	showColor
+  22              		.code	16
+  23              		.thumb_func
+  24              		.type	showColor, %function
+  25              	showColor:
+  26              	.LFB35:
+  27              		.file 1 "main.c"
+   1:main.c        **** /* ========================================
+   2:main.c        ****  *
+   3:main.c        ****  * Copyright YOUR COMPANY, THE YEAR
+   4:main.c        ****  * All Rights Reserved
+   5:main.c        ****  * UNPUBLISHED, LICENSED SOFTWARE.
+   6:main.c        ****  *
+   7:main.c        ****  * CONFIDENTIAL AND PROPRIETARY INFORMATION
+   8:main.c        ****  * WHICH IS THE PROPERTY OF your company.
+   9:main.c        ****  *
+  10:main.c        ****  * ========================================
+  11:main.c        **** */
+  12:main.c        **** #include "project.h"
+  13:main.c        **** #include <btns.h>
+  14:main.c        **** #define LED_ON 0u
+  15:main.c        **** #define LED_OFF 1u
+  16:main.c        **** #include "stdio.h"
+  17:main.c        **** /* Turn on an LED connected to a SW controlled pin */
+  18:main.c        **** 
+  19:main.c        **** extern DevState device;
+  20:main.c        **** extern uint32_t sendbuffer;
+  21:main.c        **** uint8_t rgb[3] = {255, 0, 0};
+  22:main.c        **** uint8_t ind = 0, state = 1;
+  23:main.c        **** uint32_t delaytmr = 0;
+  24:main.c        **** uint32_t counter = 0, statetmr = 0, fade = 0;
+  25:main.c        **** void showColor(uint8_t r, uint8_t g, uint8_t b, uint32_t delay);
+  26:main.c        **** void colorWipe(uint8_t r, uint8_t g, uint8_t b, uint32_t delay);
+  27:main.c        **** void theaterChase(uint8_t r, uint8_t g, uint8_t b, uint32_t delay);
+  28:main.c        **** void rainbowCycle(uint32_t frames, uint8_t frameAdvance, uint32_t pixelAdvance, uint32_t delay);
+  29:main.c        **** void detonate(uint8_t r, uint8_t g, uint8_t b, uint32_t startdelayms);
+  30:main.c        **** 
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 2
+
+
+  31:main.c        **** void device_task(void)
+  32:main.c        **** {
+  33:main.c        ****   if (device.state != device.prev_state)
+  34:main.c        ****   {
+  35:main.c        ****     device.new_state = true;
+  36:main.c        ****   }
+  37:main.c        ****   device.prev_state = device.state;
+  38:main.c        ****   switch (device.state)
+  39:main.c        ****   {
+  40:main.c        ****   case IDLE:
+  41:main.c        ****   {
+  42:main.c        ****     if (device.new_state)
+  43:main.c        ****     {
+  44:main.c        ****       showColor(0, 0, 0, 100);
+  45:main.c        ****       device.new_state = 0;
+  46:main.c        ****       state = 1;
+  47:main.c        ****     }
+  48:main.c        ****     showColor(rgb[0], rgb[1], rgb[2], 0);
+  49:main.c        **** 
+  50:main.c        ****     if (rgb[1] < 255 && state == 1)
+  51:main.c        ****     {
+  52:main.c        ****       rgb[1]++;
+  53:main.c        ****       rgb[0]--;
+  54:main.c        ****       if (rgb[1] == 255)
+  55:main.c        ****         state = 2;
+  56:main.c        ****     }
+  57:main.c        ****     if (rgb[2] < 255 && state == 2)
+  58:main.c        ****     {
+  59:main.c        ****       rgb[2]++;
+  60:main.c        ****       rgb[1]--;
+  61:main.c        ****       if (rgb[2] == 255)
+  62:main.c        ****         state = 3;
+  63:main.c        ****     }
+  64:main.c        ****     if (state == 3)
+  65:main.c        ****     {
+  66:main.c        ****       rgb[0]++;
+  67:main.c        ****       rgb[2]--;
+  68:main.c        ****       if (rgb[2] == 0)
+  69:main.c        ****         state = 1;
+  70:main.c        ****     }
+  71:main.c        **** 
+  72:main.c        ****     if (BTN_getPressed())
+  73:main.c        ****     {
+  74:main.c        ****       LEDA_Write(LED_ON);
+  75:main.c        ****       device.state = THEATER_CHASE;
+  76:main.c        ****     }
+  77:main.c        **** 
+  78:main.c        ****     break;
+  79:main.c        ****   }
+  80:main.c        **** 
+  81:main.c        ****   case THEATER_CHASE:
+  82:main.c        ****   {
+  83:main.c        ****     if (device.new_state)
+  84:main.c        ****     {
+  85:main.c        ****       showColor(0, 0, 0, 100);
+  86:main.c        ****       device.new_state = 0;
+  87:main.c        ****       state = 1;
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 3
+
+
+  88:main.c        ****       delaytmr = 0;
+  89:main.c        ****     }
+  90:main.c        ****     if (BTN_getPressed())
+  91:main.c        ****     {
+  92:main.c        ****       state += 1;
+  93:main.c        ****       if (state > 3)
+  94:main.c        ****       {
+  95:main.c        ****         state = 1;
+  96:main.c        ****       }
+  97:main.c        ****     }
+  98:main.c        ****     if (BTN_getHeld())
+  99:main.c        ****     {
+ 100:main.c        ****       device.state = RAINBOW;
+ 101:main.c        ****     }
+ 102:main.c        ****     // Send a theater pixel chase in...
+ 103:main.c        ****     switch (state)
+ 104:main.c        ****     {
+ 105:main.c        ****     case 1:
+ 106:main.c        ****       theaterChase(127, 127, 127, 500); // White
+ 107:main.c        ****       break;
+ 108:main.c        ****     case 2:
+ 109:main.c        ****       theaterChase(127, 0, 0, 250); // Red
+ 110:main.c        ****       break;
+ 111:main.c        ****     case 3:
+ 112:main.c        ****       theaterChase(0, 0, 127, 100); // Blue
+ 113:main.c        ****       break;
+ 114:main.c        ****     }
+ 115:main.c        **** 
+ 116:main.c        ****     break;
+ 117:main.c        ****   }
+ 118:main.c        ****   case RAINBOW:
+ 119:main.c        ****   {
+ 120:main.c        ****     if (device.new_state)
+ 121:main.c        ****     {
+ 122:main.c        ****       showColor(0, 0, 0, 100);
+ 123:main.c        ****       device.new_state = 0;
+ 124:main.c        ****     }
+ 125:main.c        **** 
+ 126:main.c        ****     rainbowCycle(1000, 20, 5, 500);
+ 127:main.c        ****     if (BTN_getPressed())
+ 128:main.c        ****     {
+ 129:main.c        ****       device.state = EXPLODE;
+ 130:main.c        ****     }
+ 131:main.c        ****     break;
+ 132:main.c        ****   }
+ 133:main.c        ****   case EXPLODE:
+ 134:main.c        ****   {
+ 135:main.c        ****     if (device.new_state)
+ 136:main.c        ****     {
+ 137:main.c        ****       showColor(0, 0, 0, 100);
+ 138:main.c        ****       device.new_state = 0;
+ 139:main.c        ****       delaytmr = 0;
+ 140:main.c        ****       state = 1;
+ 141:main.c        ****       fade = 255;
+ 142:main.c        ****     }
+ 143:main.c        ****     detonate(255, 255, 255, 1000);
+ 144:main.c        ****     if (BTN_getPressed())
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 4
+
+
+ 145:main.c        ****     {
+ 146:main.c        ****       device.state = IDLE;
+ 147:main.c        ****     }
+ 148:main.c        ****     break;
+ 149:main.c        ****   }
+ 150:main.c        ****   }
+ 151:main.c        **** }
+ 152:main.c        **** 
+ 153:main.c        **** int main(void)
+ 154:main.c        **** {
+ 155:main.c        ****   CyGlobalIntEnable; /* Enable global interrupts. */
+ 156:main.c        ****   device.state = IDLE;
+ 157:main.c        ****   device.new_state = true;
+ 158:main.c        ****   uint32_t ticks = 0;
+ 159:main.c        ****   NeoPixel_Init();
+ 160:main.c        ****   for (;;)
+ 161:main.c        ****   {
+ 162:main.c        ****     BTN_task();
+ 163:main.c        ****     device_task();
+ 164:main.c        ****     if (ticks > 1000)
+ 165:main.c        ****     { //HeartBeat
+ 166:main.c        ****       LEDA_Write(!LEDA_Read());
+ 167:main.c        ****       ticks = 0;
+ 168:main.c        ****     }
+ 169:main.c        ****     ticks += 1;
+ 170:main.c        ****   }
+ 171:main.c        **** }
+ 172:main.c        **** 
+ 173:main.c        **** // Display a single color on the whole string
+ 174:main.c        **** void showColor(uint8_t r, uint8_t g, uint8_t b, uint32_t delay)
+ 175:main.c        **** {
+  28              		.loc 1 175 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  34              		.cfi_def_cfa_offset 20
+  35              		.cfi_offset 4, -20
+  36              		.cfi_offset 5, -16
+  37              		.cfi_offset 6, -12
+  38              		.cfi_offset 7, -8
+  39              		.cfi_offset 14, -4
+  40 0002 4746     		mov	r7, r8
+  41 0004 80B4     		push	{r7}
+  42              		.cfi_def_cfa_offset 24
+  43              		.cfi_offset 8, -24
+  44 0006 0500     		movs	r5, r0
+  45 0008 0E00     		movs	r6, r1
+  46 000a 1700     		movs	r7, r2
+  47 000c 9846     		mov	r8, r3
+ 176:main.c        ****   if (delaytmr == 0)
+  48              		.loc 1 176 0
+  49 000e 104B     		ldr	r3, .L7
+  50              	.LVL1:
+  51 0010 1B68     		ldr	r3, [r3]
+  52 0012 002B     		cmp	r3, #0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 5
+
+
+  53 0014 07D0     		beq	.L6
+  54 0016 11E0     		b	.L3
+  55              	.LVL2:
+  56              	.L4:
+  57              	.LBB2:
+ 177:main.c        ****   {
+ 178:main.c        ****     for (int p = 0; p < PIXELS; p++)
+ 179:main.c        ****     {
+ 180:main.c        ****       NeoPixel_sendPixel(r, g, b);
+  58              		.loc 1 180 0 discriminator 3
+  59 0018 3A00     		movs	r2, r7
+  60 001a 3100     		movs	r1, r6
+  61 001c 2800     		movs	r0, r5
+  62 001e FFF7FEFF 		bl	NeoPixel_sendPixel
+  63              	.LVL3:
+ 178:main.c        ****     {
+  64              		.loc 1 178 0 discriminator 3
+  65 0022 0134     		adds	r4, r4, #1
+  66              	.LVL4:
+  67 0024 00E0     		b	.L2
+  68              	.LVL5:
+  69              	.L6:
+  70              	.LBE2:
+  71 0026 0024     		movs	r4, #0
+  72              	.LVL6:
+  73              	.L2:
+  74              	.LBB3:
+ 178:main.c        ****     {
+  75              		.loc 1 178 0 is_stmt 0 discriminator 1
+  76 0028 182C     		cmp	r4, #24
+  77 002a F5DD     		ble	.L4
+  78              	.LBE3:
+ 181:main.c        ****     }
+ 182:main.c        ****     NeoPixel_show();
+  79              		.loc 1 182 0 is_stmt 1
+  80 002c FFF7FEFF 		bl	NeoPixel_show
+  81              	.LVL7:
+ 183:main.c        ****     delaytmr = delay * 10;
+  82              		.loc 1 183 0
+  83 0030 4346     		mov	r3, r8
+  84 0032 9B00     		lsls	r3, r3, #2
+  85 0034 4344     		add	r3, r3, r8
+  86 0036 5A00     		lsls	r2, r3, #1
+  87 0038 054B     		ldr	r3, .L7
+  88 003a 1A60     		str	r2, [r3]
+  89              	.LVL8:
+  90              	.L3:
+ 184:main.c        ****   }
+ 185:main.c        ****   if (delaytmr > 0)
+  91              		.loc 1 185 0
+  92 003c 044B     		ldr	r3, .L7
+  93 003e 1B68     		ldr	r3, [r3]
+  94 0040 002B     		cmp	r3, #0
+  95 0042 02D0     		beq	.L1
+ 186:main.c        ****   {
+ 187:main.c        ****     delaytmr--;
+  96              		.loc 1 187 0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 6
+
+
+  97 0044 013B     		subs	r3, r3, #1
+  98 0046 024A     		ldr	r2, .L7
+  99 0048 1360     		str	r3, [r2]
+ 100              	.L1:
+ 188:main.c        ****   }
+ 189:main.c        **** }
+ 101              		.loc 1 189 0
+ 102              		@ sp needed
+ 103              	.LVL9:
+ 104 004a 04BC     		pop	{r2}
+ 105 004c 9046     		mov	r8, r2
+ 106 004e F0BD     		pop	{r4, r5, r6, r7, pc}
+ 107              	.L8:
+ 108              		.align	2
+ 109              	.L7:
+ 110 0050 00000000 		.word	.LANCHOR0
+ 111              		.cfi_endproc
+ 112              	.LFE35:
+ 113              		.size	showColor, .-showColor
+ 114              		.section	.text.colorWipe,"ax",%progbits
+ 115              		.align	2
+ 116              		.global	colorWipe
+ 117              		.code	16
+ 118              		.thumb_func
+ 119              		.type	colorWipe, %function
+ 120              	colorWipe:
+ 121              	.LFB36:
+ 190:main.c        **** 
+ 191:main.c        **** // Fill the dots one after the other with a color
+ 192:main.c        **** // rewrite to lift the compare out of the loop
+ 193:main.c        **** void colorWipe(uint8_t r, uint8_t g, uint8_t b, uint32_t delay)
+ 194:main.c        **** {
+ 122              		.loc 1 194 0
+ 123              		.cfi_startproc
+ 124              		@ args = 0, pretend = 0, frame = 8
+ 125              		@ frame_needed = 0, uses_anonymous_args = 0
+ 126              	.LVL10:
+ 127 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 128              		.cfi_def_cfa_offset 20
+ 129              		.cfi_offset 4, -20
+ 130              		.cfi_offset 5, -16
+ 131              		.cfi_offset 6, -12
+ 132              		.cfi_offset 7, -8
+ 133              		.cfi_offset 14, -4
+ 134 0002 5746     		mov	r7, r10
+ 135 0004 80B4     		push	{r7}
+ 136              		.cfi_def_cfa_offset 24
+ 137              		.cfi_offset 10, -24
+ 138 0006 82B0     		sub	sp, sp, #8
+ 139              		.cfi_def_cfa_offset 32
+ 140 0008 0090     		str	r0, [sp]
+ 141 000a 0191     		str	r1, [sp, #4]
+ 142 000c 1700     		movs	r7, r2
+ 143 000e 9A46     		mov	r10, r3
+ 195:main.c        ****   if (delaytmr == 0)
+ 144              		.loc 1 195 0
+ 145 0010 184B     		ldr	r3, .L19
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 7
+
+
+ 146              	.LVL11:
+ 147 0012 1B68     		ldr	r3, [r3]
+ 148 0014 002B     		cmp	r3, #0
+ 149 0016 1FD0     		beq	.L17
+ 150              	.LBB4:
+ 151 0018 21E0     		b	.L11
+ 152              	.LVL12:
+ 153              	.L12:
+ 154              	.LBB5:
+ 196:main.c        ****   {
+ 197:main.c        ****     for (uint32_t i = 0; i < PIXELS; i += (PIXELS / 5))
+ 198:main.c        ****     {
+ 199:main.c        **** 
+ 200:main.c        ****       uint32_t p = 0;
+ 201:main.c        ****       while (p++ <= i)
+ 202:main.c        ****       {
+ 203:main.c        ****         NeoPixel_sendPixel(r, g, b);
+ 155              		.loc 1 203 0
+ 156 001a 3A00     		movs	r2, r7
+ 157 001c 0199     		ldr	r1, [sp, #4]
+ 158 001e 0098     		ldr	r0, [sp]
+ 159 0020 FFF7FEFF 		bl	NeoPixel_sendPixel
+ 160              	.LVL13:
+ 201:main.c        ****       {
+ 161              		.loc 1 201 0
+ 162 0024 2300     		movs	r3, r4
+ 163 0026 00E0     		b	.L15
+ 164              	.LVL14:
+ 165              	.L18:
+ 166              	.LBE5:
+ 167 0028 0023     		movs	r3, #0
+ 168              	.L15:
+ 169              	.LVL15:
+ 170              	.LBB6:
+ 171 002a 5C1C     		adds	r4, r3, #1
+ 172              	.LVL16:
+ 173 002c 9D42     		cmp	r5, r3
+ 174 002e F4D2     		bcs	.L12
+ 175 0030 05E0     		b	.L13
+ 176              	.LVL17:
+ 177              	.L14:
+ 204:main.c        ****       }
+ 205:main.c        ****       while (p++ <= PIXELS)
+ 206:main.c        ****       {
+ 207:main.c        ****         NeoPixel_sendPixel(0, 0, 0);
+ 178              		.loc 1 207 0
+ 179 0032 0022     		movs	r2, #0
+ 180 0034 0021     		movs	r1, #0
+ 181 0036 0020     		movs	r0, #0
+ 182 0038 FFF7FEFF 		bl	NeoPixel_sendPixel
+ 183              	.LVL18:
+ 205:main.c        ****       {
+ 184              		.loc 1 205 0
+ 185 003c 3400     		movs	r4, r6
+ 186              	.LVL19:
+ 187              	.L13:
+ 188 003e 661C     		adds	r6, r4, #1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 8
+
+
+ 189              	.LVL20:
+ 190 0040 192C     		cmp	r4, #25
+ 191 0042 F6D9     		bls	.L14
+ 208:main.c        ****       }
+ 209:main.c        ****       NeoPixel_show();
+ 192              		.loc 1 209 0 discriminator 2
+ 193 0044 FFF7FEFF 		bl	NeoPixel_show
+ 194              	.LVL21:
+ 210:main.c        ****       delaytmr = delay * 10;
+ 195              		.loc 1 210 0 discriminator 2
+ 196 0048 5346     		mov	r3, r10
+ 197 004a 9B00     		lsls	r3, r3, #2
+ 198 004c 5344     		add	r3, r3, r10
+ 199 004e 5A00     		lsls	r2, r3, #1
+ 200 0050 084B     		ldr	r3, .L19
+ 201 0052 1A60     		str	r2, [r3]
+ 202              	.LBE6:
+ 197:main.c        ****     {
+ 203              		.loc 1 197 0 discriminator 2
+ 204 0054 0535     		adds	r5, r5, #5
+ 205              	.LVL22:
+ 206 0056 00E0     		b	.L10
+ 207              	.LVL23:
+ 208              	.L17:
+ 209              	.LBE4:
+ 210 0058 0025     		movs	r5, #0
+ 211              	.LVL24:
+ 212              	.L10:
+ 213              	.LBB7:
+ 197:main.c        ****     {
+ 214              		.loc 1 197 0 is_stmt 0 discriminator 1
+ 215 005a 182D     		cmp	r5, #24
+ 216 005c E4D9     		bls	.L18
+ 217              	.LVL25:
+ 218              	.L11:
+ 219              	.LBE7:
+ 211:main.c        ****     }
+ 212:main.c        ****   }
+ 213:main.c        ****   if (delaytmr > 0)
+ 220              		.loc 1 213 0 is_stmt 1
+ 221 005e 054B     		ldr	r3, .L19
+ 222 0060 1B68     		ldr	r3, [r3]
+ 223 0062 002B     		cmp	r3, #0
+ 224 0064 02D0     		beq	.L9
+ 214:main.c        ****   {
+ 215:main.c        ****     delaytmr--;
+ 225              		.loc 1 215 0
+ 226 0066 013B     		subs	r3, r3, #1
+ 227 0068 024A     		ldr	r2, .L19
+ 228 006a 1360     		str	r3, [r2]
+ 229              	.L9:
+ 216:main.c        ****   }
+ 217:main.c        **** }
+ 230              		.loc 1 217 0
+ 231 006c 02B0     		add	sp, sp, #8
+ 232              		@ sp needed
+ 233              	.LVL26:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 9
+
+
+ 234 006e 04BC     		pop	{r2}
+ 235 0070 9246     		mov	r10, r2
+ 236 0072 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 237              	.L20:
+ 238              		.align	2
+ 239              	.L19:
+ 240 0074 00000000 		.word	.LANCHOR0
+ 241              		.cfi_endproc
+ 242              	.LFE36:
+ 243              		.size	colorWipe, .-colorWipe
+ 244              		.global	__aeabi_uidivmod
+ 245              		.section	.text.theaterChase,"ax",%progbits
+ 246              		.align	2
+ 247              		.global	theaterChase
+ 248              		.code	16
+ 249              		.thumb_func
+ 250              		.type	theaterChase, %function
+ 251              	theaterChase:
+ 252              	.LFB37:
+ 218:main.c        **** 
+ 219:main.c        **** // Theatre-style crawling lights.
+ 220:main.c        **** // Changes spacing to be dynmaic based on string size
+ 221:main.c        **** 
+ 222:main.c        **** #define THEATER_SPACING (PIXELS / 5)
+ 223:main.c        **** uint32_t q = 0;
+ 224:main.c        **** void theaterChase(uint8_t r, uint8_t g, uint8_t b, uint32_t delay)
+ 225:main.c        **** {
+ 253              		.loc 1 225 0
+ 254              		.cfi_startproc
+ 255              		@ args = 0, pretend = 0, frame = 8
+ 256              		@ frame_needed = 0, uses_anonymous_args = 0
+ 257              	.LVL27:
+ 258 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 259              		.cfi_def_cfa_offset 20
+ 260              		.cfi_offset 4, -20
+ 261              		.cfi_offset 5, -16
+ 262              		.cfi_offset 6, -12
+ 263              		.cfi_offset 7, -8
+ 264              		.cfi_offset 14, -4
+ 265 0002 83B0     		sub	sp, sp, #12
+ 266              		.cfi_def_cfa_offset 32
+ 267 0004 0190     		str	r0, [sp, #4]
+ 268 0006 0E00     		movs	r6, r1
+ 269 0008 1700     		movs	r7, r2
+ 270 000a 1D00     		movs	r5, r3
+ 226:main.c        ****   if (q == THEATER_SPACING)
+ 271              		.loc 1 226 0
+ 272 000c 1B4B     		ldr	r3, .L30
+ 273              	.LVL28:
+ 274 000e 5B68     		ldr	r3, [r3, #4]
+ 275 0010 052B     		cmp	r3, #5
+ 276 0012 02D1     		bne	.L22
+ 227:main.c        ****   {
+ 228:main.c        ****     q = 0;
+ 277              		.loc 1 228 0
+ 278 0014 0022     		movs	r2, #0
+ 279              	.LVL29:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 10
+
+
+ 280 0016 194B     		ldr	r3, .L30
+ 281 0018 5A60     		str	r2, [r3, #4]
+ 282              	.L22:
+ 229:main.c        ****   }
+ 230:main.c        ****   if (delaytmr == 0)
+ 283              		.loc 1 230 0
+ 284 001a 184B     		ldr	r3, .L30
+ 285 001c 1B68     		ldr	r3, [r3]
+ 286 001e 002B     		cmp	r3, #0
+ 287 0020 15D0     		beq	.L29
+ 288 0022 21E0     		b	.L24
+ 289              	.LVL30:
+ 290              	.L27:
+ 291              	.LBB8:
+ 231:main.c        ****   {
+ 232:main.c        ****     for (uint32_t i = 0; i < PIXELS; i++)
+ 233:main.c        ****     {
+ 234:main.c        ****       if ((i + q) % THEATER_SPACING == 0)
+ 292              		.loc 1 234 0
+ 293 0024 154B     		ldr	r3, .L30
+ 294 0026 5868     		ldr	r0, [r3, #4]
+ 295 0028 2018     		adds	r0, r4, r0
+ 296 002a 0521     		movs	r1, #5
+ 297 002c FFF7FEFF 		bl	__aeabi_uidivmod
+ 298              	.LVL31:
+ 299 0030 0029     		cmp	r1, #0
+ 300 0032 05D1     		bne	.L25
+ 235:main.c        ****       {
+ 236:main.c        ****         NeoPixel_sendPixel(r, g, b);
+ 301              		.loc 1 236 0
+ 302 0034 3A00     		movs	r2, r7
+ 303 0036 3100     		movs	r1, r6
+ 304 0038 0198     		ldr	r0, [sp, #4]
+ 305 003a FFF7FEFF 		bl	NeoPixel_sendPixel
+ 306              	.LVL32:
+ 307 003e 04E0     		b	.L26
+ 308              	.L25:
+ 237:main.c        ****       }
+ 238:main.c        ****       else
+ 239:main.c        ****       {
+ 240:main.c        ****         NeoPixel_sendPixel(0, 0, 0);
+ 309              		.loc 1 240 0
+ 310 0040 0022     		movs	r2, #0
+ 311 0042 0021     		movs	r1, #0
+ 312 0044 0020     		movs	r0, #0
+ 313 0046 FFF7FEFF 		bl	NeoPixel_sendPixel
+ 314              	.LVL33:
+ 315              	.L26:
+ 232:main.c        ****     {
+ 316              		.loc 1 232 0 discriminator 2
+ 317 004a 0134     		adds	r4, r4, #1
+ 318              	.LVL34:
+ 319 004c 00E0     		b	.L23
+ 320              	.LVL35:
+ 321              	.L29:
+ 322              	.LBE8:
+ 323 004e 0024     		movs	r4, #0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 11
+
+
+ 324              	.LVL36:
+ 325              	.L23:
+ 326              	.LBB9:
+ 232:main.c        ****     {
+ 327              		.loc 1 232 0 is_stmt 0 discriminator 1
+ 328 0050 182C     		cmp	r4, #24
+ 329 0052 E7D9     		bls	.L27
+ 330              	.LBE9:
+ 241:main.c        ****       }
+ 242:main.c        ****     }
+ 243:main.c        ****     NeoPixel_show();
+ 331              		.loc 1 243 0 is_stmt 1
+ 332 0054 FFF7FEFF 		bl	NeoPixel_show
+ 333              	.LVL37:
+ 244:main.c        ****     delaytmr = delay * 10;
+ 334              		.loc 1 244 0
+ 335 0058 AB00     		lsls	r3, r5, #2
+ 336 005a 5B19     		adds	r3, r3, r5
+ 337 005c 5A00     		lsls	r2, r3, #1
+ 338 005e 074B     		ldr	r3, .L30
+ 339 0060 1A60     		str	r2, [r3]
+ 245:main.c        ****     q++;
+ 340              		.loc 1 245 0
+ 341 0062 5A68     		ldr	r2, [r3, #4]
+ 342 0064 0132     		adds	r2, r2, #1
+ 343 0066 5A60     		str	r2, [r3, #4]
+ 344              	.LVL38:
+ 345              	.L24:
+ 246:main.c        ****   }
+ 247:main.c        ****   if (delaytmr > 0)
+ 346              		.loc 1 247 0
+ 347 0068 044B     		ldr	r3, .L30
+ 348 006a 1B68     		ldr	r3, [r3]
+ 349 006c 002B     		cmp	r3, #0
+ 350 006e 02D0     		beq	.L21
+ 248:main.c        ****   {
+ 249:main.c        ****     delaytmr--;
+ 351              		.loc 1 249 0
+ 352 0070 013B     		subs	r3, r3, #1
+ 353 0072 024A     		ldr	r2, .L30
+ 354 0074 1360     		str	r3, [r2]
+ 355              	.L21:
+ 250:main.c        ****   }
+ 251:main.c        **** }
+ 356              		.loc 1 251 0
+ 357 0076 03B0     		add	sp, sp, #12
+ 358              		@ sp needed
+ 359              	.LVL39:
+ 360 0078 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 361              	.L31:
+ 362 007a C046     		.align	2
+ 363              	.L30:
+ 364 007c 00000000 		.word	.LANCHOR0
+ 365              		.cfi_endproc
+ 366              	.LFE37:
+ 367              		.size	theaterChase, .-theaterChase
+ 368              		.section	.text.rainbowCycle,"ax",%progbits
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 12
+
+
+ 369              		.align	2
+ 370              		.global	rainbowCycle
+ 371              		.code	16
+ 372              		.thumb_func
+ 373              		.type	rainbowCycle, %function
+ 374              	rainbowCycle:
+ 375              	.LFB38:
+ 252:main.c        **** 
+ 253:main.c        **** // I rewrite this one from scrtach to use high resolution for the color wheel to look nicer on a *m
+ 254:main.c        **** uint32_t firstPixelHue = 0; // Color for the first pixel in the string
+ 255:main.c        **** 
+ 256:main.c        **** void rainbowCycle(uint32_t frames, uint8_t frameAdvance, uint32_t pixelAdvance, uint32_t delay)
+ 257:main.c        **** {
+ 376              		.loc 1 257 0
+ 377              		.cfi_startproc
+ 378              		@ args = 0, pretend = 0, frame = 8
+ 379              		@ frame_needed = 0, uses_anonymous_args = 0
+ 380              	.LVL40:
+ 381 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 382              		.cfi_def_cfa_offset 20
+ 383              		.cfi_offset 4, -20
+ 384              		.cfi_offset 5, -16
+ 385              		.cfi_offset 6, -12
+ 386              		.cfi_offset 7, -8
+ 387              		.cfi_offset 14, -4
+ 388 0002 4F46     		mov	r7, r9
+ 389 0004 80B4     		push	{r7}
+ 390              		.cfi_def_cfa_offset 24
+ 391              		.cfi_offset 9, -24
+ 392 0006 82B0     		sub	sp, sp, #8
+ 393              		.cfi_def_cfa_offset 32
+ 394 0008 0191     		str	r1, [sp, #4]
+ 395 000a 1500     		movs	r5, r2
+ 396 000c 9946     		mov	r9, r3
+ 258:main.c        **** 
+ 259:main.c        ****   // Hue is a number between 0 and 3*256 than defines a mix of r->g->b where
+ 260:main.c        ****   // hue of 0 = Full red
+ 261:main.c        ****   // hue of 128 = 1/2 red and 1/2 green
+ 262:main.c        ****   // hue of 256 = Full Green
+ 263:main.c        ****   // hue of 384 = 1/2 green and 1/2 blue
+ 264:main.c        ****   // ...
+ 265:main.c        ****   if (firstPixelHue == frames)
+ 397              		.loc 1 265 0
+ 398 000e 284B     		ldr	r3, .L43
+ 399              	.LVL41:
+ 400 0010 9B68     		ldr	r3, [r3, #8]
+ 401 0012 8342     		cmp	r3, r0
+ 402 0014 02D1     		bne	.L33
+ 266:main.c        ****   {
+ 267:main.c        ****     firstPixelHue = 0;
+ 403              		.loc 1 267 0
+ 404 0016 0022     		movs	r2, #0
+ 405              	.LVL42:
+ 406 0018 254B     		ldr	r3, .L43
+ 407 001a 9A60     		str	r2, [r3, #8]
+ 408              	.L33:
+ 268:main.c        ****   }
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 13
+
+
+ 269:main.c        **** 
+ 270:main.c        ****   if (delaytmr == 0)
+ 409              		.loc 1 270 0
+ 410 001c 244B     		ldr	r3, .L43
+ 411 001e 1B68     		ldr	r3, [r3]
+ 412 0020 002B     		cmp	r3, #0
+ 413 0022 39D1     		bne	.L34
+ 414              	.LBB10:
+ 271:main.c        ****   {
+ 272:main.c        ****     unsigned int currentPixelHue = firstPixelHue;
+ 415              		.loc 1 272 0
+ 416 0024 224B     		ldr	r3, .L43
+ 417 0026 9C68     		ldr	r4, [r3, #8]
+ 418              	.LVL43:
+ 419              	.LBB11:
+ 273:main.c        ****     for (uint32_t i = 0; i < PIXELS; i++)
+ 420              		.loc 1 273 0
+ 421 0028 0026     		movs	r6, #0
+ 422 002a 26E0     		b	.L35
+ 423              	.LVL44:
+ 424              	.L41:
+ 425              	.LBB12:
+ 274:main.c        ****     {
+ 275:main.c        ****       if (currentPixelHue >= (3 * 256))
+ 426              		.loc 1 275 0
+ 427 002c 214B     		ldr	r3, .L43+4
+ 428 002e 9C42     		cmp	r4, r3
+ 429 0030 02D9     		bls	.L36
+ 276:main.c        ****       { // Normalize back down incase we incremented and overflowed
+ 277:main.c        ****         currentPixelHue -= (3 * 256);
+ 430              		.loc 1 277 0
+ 431 0032 214B     		ldr	r3, .L43+8
+ 432 0034 9C46     		mov	ip, r3
+ 433 0036 6444     		add	r4, r4, ip
+ 434              	.LVL45:
+ 435              	.L36:
+ 278:main.c        ****       }
+ 279:main.c        ****       uint8_t phase = currentPixelHue >> 8;
+ 436              		.loc 1 279 0
+ 437 0038 230A     		lsrs	r3, r4, #8
+ 438              	.LVL46:
+ 280:main.c        ****       uint8_t step = currentPixelHue & 0xff;
+ 439              		.loc 1 280 0
+ 440 003a E7B2     		uxtb	r7, r4
+ 441              	.LVL47:
+ 281:main.c        ****       switch (phase)
+ 442              		.loc 1 281 0
+ 443 003c FF22     		movs	r2, #255
+ 444 003e 1340     		ands	r3, r2
+ 445              	.LVL48:
+ 446 0040 012B     		cmp	r3, #1
+ 447 0042 0BD0     		beq	.L38
+ 448 0044 002B     		cmp	r3, #0
+ 449 0046 02D0     		beq	.L39
+ 450 0048 022B     		cmp	r3, #2
+ 451 004a 0ED0     		beq	.L40
+ 452 004c 13E0     		b	.L37
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 14
+
+
+ 453              	.L39:
+ 282:main.c        ****       {
+ 283:main.c        ****       case 0:
+ 284:main.c        ****         NeoPixel_sendPixel(~step, step, 0);
+ 454              		.loc 1 284 0
+ 455 004e F843     		mvns	r0, r7
+ 456 0050 C0B2     		uxtb	r0, r0
+ 457 0052 0022     		movs	r2, #0
+ 458 0054 3900     		movs	r1, r7
+ 459 0056 FFF7FEFF 		bl	NeoPixel_sendPixel
+ 460              	.LVL49:
+ 285:main.c        ****         break;
+ 461              		.loc 1 285 0
+ 462 005a 0CE0     		b	.L37
+ 463              	.L38:
+ 286:main.c        **** 
+ 287:main.c        ****       case 1:
+ 288:main.c        ****         NeoPixel_sendPixel(0, ~step, step);
+ 464              		.loc 1 288 0
+ 465 005c F943     		mvns	r1, r7
+ 466 005e C9B2     		uxtb	r1, r1
+ 467 0060 3A00     		movs	r2, r7
+ 468 0062 0020     		movs	r0, #0
+ 469 0064 FFF7FEFF 		bl	NeoPixel_sendPixel
+ 470              	.LVL50:
+ 289:main.c        ****         break;
+ 471              		.loc 1 289 0
+ 472 0068 05E0     		b	.L37
+ 473              	.L40:
+ 290:main.c        **** 
+ 291:main.c        ****       case 2:
+ 292:main.c        ****         NeoPixel_sendPixel(step, 0, ~step);
+ 474              		.loc 1 292 0
+ 475 006a FA43     		mvns	r2, r7
+ 476 006c D2B2     		uxtb	r2, r2
+ 477 006e 0021     		movs	r1, #0
+ 478 0070 3800     		movs	r0, r7
+ 479 0072 FFF7FEFF 		bl	NeoPixel_sendPixel
+ 480              	.LVL51:
+ 481              	.L37:
+ 293:main.c        ****         break;
+ 294:main.c        ****       }
+ 295:main.c        **** 
+ 296:main.c        ****       currentPixelHue += pixelAdvance;
+ 482              		.loc 1 296 0 discriminator 2
+ 483 0076 6419     		adds	r4, r4, r5
+ 484              	.LVL52:
+ 485              	.LBE12:
+ 273:main.c        ****     {
+ 486              		.loc 1 273 0 discriminator 2
+ 487 0078 0136     		adds	r6, r6, #1
+ 488              	.LVL53:
+ 489              	.L35:
+ 273:main.c        ****     {
+ 490              		.loc 1 273 0 is_stmt 0 discriminator 1
+ 491 007a 182E     		cmp	r6, #24
+ 492 007c D6D9     		bls	.L41
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 15
+
+
+ 493              	.LBE11:
+ 297:main.c        ****     }
+ 298:main.c        **** 
+ 299:main.c        ****     NeoPixel_show();
+ 494              		.loc 1 299 0 is_stmt 1
+ 495 007e FFF7FEFF 		bl	NeoPixel_show
+ 496              	.LVL54:
+ 300:main.c        ****     firstPixelHue += frameAdvance;
+ 497              		.loc 1 300 0
+ 498 0082 0B4A     		ldr	r2, .L43
+ 499 0084 019B     		ldr	r3, [sp, #4]
+ 500 0086 9168     		ldr	r1, [r2, #8]
+ 501 0088 8C46     		mov	ip, r1
+ 502 008a 6344     		add	r3, r3, ip
+ 503 008c 9360     		str	r3, [r2, #8]
+ 301:main.c        ****     delaytmr = delay * 10;
+ 504              		.loc 1 301 0
+ 505 008e 4B46     		mov	r3, r9
+ 506 0090 9B00     		lsls	r3, r3, #2
+ 507 0092 4B44     		add	r3, r3, r9
+ 508 0094 5900     		lsls	r1, r3, #1
+ 509 0096 1160     		str	r1, [r2]
+ 510              	.LVL55:
+ 511              	.L34:
+ 512              	.LBE10:
+ 302:main.c        ****   }
+ 303:main.c        ****   if (delaytmr > 0)
+ 513              		.loc 1 303 0
+ 514 0098 054B     		ldr	r3, .L43
+ 515 009a 1B68     		ldr	r3, [r3]
+ 516 009c 002B     		cmp	r3, #0
+ 517 009e 02D0     		beq	.L32
+ 304:main.c        ****   {
+ 305:main.c        ****     delaytmr--;
+ 518              		.loc 1 305 0
+ 519 00a0 013B     		subs	r3, r3, #1
+ 520 00a2 034A     		ldr	r2, .L43
+ 521 00a4 1360     		str	r3, [r2]
+ 522              	.L32:
+ 306:main.c        ****   }
+ 307:main.c        **** }
+ 523              		.loc 1 307 0
+ 524 00a6 02B0     		add	sp, sp, #8
+ 525              		@ sp needed
+ 526              	.LVL56:
+ 527              	.LVL57:
+ 528 00a8 04BC     		pop	{r2}
+ 529 00aa 9146     		mov	r9, r2
+ 530 00ac F0BD     		pop	{r4, r5, r6, r7, pc}
+ 531              	.L44:
+ 532 00ae C046     		.align	2
+ 533              	.L43:
+ 534 00b0 00000000 		.word	.LANCHOR0
+ 535 00b4 FF020000 		.word	767
+ 536 00b8 00FDFFFF 		.word	-768
+ 537              		.cfi_endproc
+ 538              	.LFE38:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 16
+
+
+ 539              		.size	rainbowCycle, .-rainbowCycle
+ 540              		.global	__aeabi_ui2d
+ 541              		.global	__aeabi_ddiv
+ 542              		.global	__aeabi_d2uiz
+ 543              		.global	__aeabi_uidiv
+ 544              		.section	.text.detonate,"ax",%progbits
+ 545              		.align	2
+ 546              		.global	detonate
+ 547              		.code	16
+ 548              		.thumb_func
+ 549              		.type	detonate, %function
+ 550              	detonate:
+ 551              	.LFB39:
+ 308:main.c        **** 
+ 309:main.c        **** // I added this one just to demonstrate how quickly you can flash the string.
+ 310:main.c        **** // Flashes get faster and faster until *boom* and fade to black.
+ 311:main.c        **** void detonate(uint8_t r, uint8_t g, uint8_t b, uint32_t delay)
+ 312:main.c        **** {
+ 552              		.loc 1 312 0
+ 553              		.cfi_startproc
+ 554              		@ args = 0, pretend = 0, frame = 8
+ 555              		@ frame_needed = 0, uses_anonymous_args = 0
+ 556              	.LVL58:
+ 557 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 558              		.cfi_def_cfa_offset 20
+ 559              		.cfi_offset 4, -20
+ 560              		.cfi_offset 5, -16
+ 561              		.cfi_offset 6, -12
+ 562              		.cfi_offset 7, -8
+ 563              		.cfi_offset 14, -4
+ 564 0002 4746     		mov	r7, r8
+ 565 0004 80B4     		push	{r7}
+ 566              		.cfi_def_cfa_offset 24
+ 567              		.cfi_offset 8, -24
+ 568 0006 82B0     		sub	sp, sp, #8
+ 569              		.cfi_def_cfa_offset 32
+ 570 0008 0190     		str	r0, [sp, #4]
+ 571 000a 0D00     		movs	r5, r1
+ 572 000c 1700     		movs	r7, r2
+ 573 000e 1E00     		movs	r6, r3
+ 313:main.c        ****   if (counter == 0 && state < 3)
+ 574              		.loc 1 313 0
+ 575 0010 444B     		ldr	r3, .L53
+ 576              	.LVL59:
+ 577 0012 DB68     		ldr	r3, [r3, #12]
+ 578 0014 002B     		cmp	r3, #0
+ 579 0016 44D1     		bne	.L46
+ 580              		.loc 1 313 0 is_stmt 0 discriminator 1
+ 581 0018 434B     		ldr	r3, .L53+4
+ 582 001a 1B78     		ldrb	r3, [r3]
+ 583 001c 022B     		cmp	r3, #2
+ 584 001e 40D8     		bhi	.L46
+ 314:main.c        ****   {
+ 315:main.c        ****     delaytmr = 0;
+ 585              		.loc 1 315 0 is_stmt 1
+ 586 0020 0021     		movs	r1, #0
+ 587              	.LVL60:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 17
+
+
+ 588 0022 404A     		ldr	r2, .L53
+ 589              	.LVL61:
+ 590 0024 1160     		str	r1, [r2]
+ 316:main.c        ****     if (state == 1)
+ 591              		.loc 1 316 0
+ 592 0026 012B     		cmp	r3, #1
+ 593 0028 08D1     		bne	.L47
+ 317:main.c        ****     {
+ 318:main.c        ****       showColor(r, g, b, 0); // Flash the color
+ 594              		.loc 1 318 0
+ 595 002a 0023     		movs	r3, #0
+ 596 002c 3A00     		movs	r2, r7
+ 597 002e 2900     		movs	r1, r5
+ 598 0030 FFF7FEFF 		bl	showColor
+ 599              	.LVL62:
+ 319:main.c        ****       state = 0;
+ 600              		.loc 1 319 0
+ 601 0034 0022     		movs	r2, #0
+ 602 0036 3C4B     		ldr	r3, .L53+4
+ 603 0038 1A70     		strb	r2, [r3]
+ 604 003a 08E0     		b	.L48
+ 605              	.LVL63:
+ 606              	.L47:
+ 320:main.c        ****     }
+ 321:main.c        ****     else
+ 322:main.c        ****     {
+ 323:main.c        ****       showColor(0, 0, 0, 0);
+ 607              		.loc 1 323 0
+ 608 003c 0023     		movs	r3, #0
+ 609 003e 0022     		movs	r2, #0
+ 610 0040 0021     		movs	r1, #0
+ 611 0042 0020     		movs	r0, #0
+ 612              	.LVL64:
+ 613 0044 FFF7FEFF 		bl	showColor
+ 614              	.LVL65:
+ 324:main.c        ****       state = 1;
+ 615              		.loc 1 324 0
+ 616 0048 0122     		movs	r2, #1
+ 617 004a 374B     		ldr	r3, .L53+4
+ 618 004c 1A70     		strb	r2, [r3]
+ 619              	.L48:
+ 325:main.c        ****     }
+ 326:main.c        ****     statetmr = statetmr / 1.2; //gradually reduced delay
+ 620              		.loc 1 326 0
+ 621 004e 354C     		ldr	r4, .L53
+ 622 0050 2069     		ldr	r0, [r4, #16]
+ 623 0052 FFF7FEFF 		bl	__aeabi_ui2d
+ 624              	.LVL66:
+ 625 0056 354A     		ldr	r2, .L53+8
+ 626 0058 354B     		ldr	r3, .L53+12
+ 627 005a FFF7FEFF 		bl	__aeabi_ddiv
+ 628              	.LVL67:
+ 629 005e FFF7FEFF 		bl	__aeabi_d2uiz
+ 630              	.LVL68:
+ 631 0062 2061     		str	r0, [r4, #16]
+ 327:main.c        ****     counter = statetmr;
+ 632              		.loc 1 327 0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 18
+
+
+ 633 0064 E060     		str	r0, [r4, #12]
+ 328:main.c        **** 
+ 329:main.c        ****     if (statetmr == 1)
+ 634              		.loc 1 329 0
+ 635 0066 0128     		cmp	r0, #1
+ 636 0068 10D1     		bne	.L49
+ 330:main.c        ****     {      showColor(0, 0, 0, 0);//black before explosion
+ 637              		.loc 1 330 0
+ 638 006a 0023     		movs	r3, #0
+ 639 006c 0022     		movs	r2, #0
+ 640 006e 0021     		movs	r1, #0
+ 641 0070 0020     		movs	r0, #0
+ 642 0072 FFF7FEFF 		bl	showColor
+ 643              	.LVL69:
+ 331:main.c        ****       fade = 256;
+ 644              		.loc 1 331 0
+ 645 0076 2B4A     		ldr	r2, .L53
+ 646 0078 8023     		movs	r3, #128
+ 647 007a 5B00     		lsls	r3, r3, #1
+ 648 007c 5361     		str	r3, [r2, #20]
+ 332:main.c        ****       state = 3;
+ 649              		.loc 1 332 0
+ 650 007e 0321     		movs	r1, #3
+ 651 0080 294B     		ldr	r3, .L53+4
+ 652 0082 1970     		strb	r1, [r3]
+ 333:main.c        ****       counter = delay * 500;
+ 653              		.loc 1 333 0
+ 654 0084 FA23     		movs	r3, #250
+ 655 0086 5B00     		lsls	r3, r3, #1
+ 656 0088 7343     		muls	r3, r6
+ 657 008a D360     		str	r3, [r2, #12]
+ 658              	.L49:
+ 334:main.c        ****     }
+ 335:main.c        ****     if (statetmr == 0)
+ 659              		.loc 1 335 0
+ 660 008c 254B     		ldr	r3, .L53
+ 661 008e 1B69     		ldr	r3, [r3, #16]
+ 662 0090 002B     		cmp	r3, #0
+ 663 0092 06D1     		bne	.L46
+ 336:main.c        ****     { ///start
+ 337:main.c        ****       statetmr = delay * 300;
+ 664              		.loc 1 337 0
+ 665 0094 2D33     		adds	r3, r3, #45
+ 666 0096 FF33     		adds	r3, r3, #255
+ 667 0098 7343     		muls	r3, r6
+ 668 009a 224A     		ldr	r2, .L53
+ 669 009c 1361     		str	r3, [r2, #16]
+ 338:main.c        ****       counter = 0;
+ 670              		.loc 1 338 0
+ 671 009e 0023     		movs	r3, #0
+ 672 00a0 D360     		str	r3, [r2, #12]
+ 673              	.L46:
+ 339:main.c        ****     }
+ 340:main.c        ****   }
+ 341:main.c        ****   if (counter > 0)
+ 674              		.loc 1 341 0
+ 675 00a2 204B     		ldr	r3, .L53
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 19
+
+
+ 676 00a4 DB68     		ldr	r3, [r3, #12]
+ 677 00a6 002B     		cmp	r3, #0
+ 678 00a8 02D0     		beq	.L50
+ 342:main.c        ****   {
+ 343:main.c        ****     counter--;
+ 679              		.loc 1 343 0
+ 680 00aa 013B     		subs	r3, r3, #1
+ 681 00ac 1D4A     		ldr	r2, .L53
+ 682 00ae D360     		str	r3, [r2, #12]
+ 683              	.L50:
+ 344:main.c        ****   }
+ 345:main.c        ****   if (counter == 0 && state == 3)
+ 684              		.loc 1 345 0
+ 685 00b0 1C4B     		ldr	r3, .L53
+ 686 00b2 DB68     		ldr	r3, [r3, #12]
+ 687 00b4 002B     		cmp	r3, #0
+ 688 00b6 31D1     		bne	.L45
+ 689              		.loc 1 345 0 is_stmt 0 discriminator 1
+ 690 00b8 1B4B     		ldr	r3, .L53+4
+ 691 00ba 1B78     		ldrb	r3, [r3]
+ 692 00bc 032B     		cmp	r3, #3
+ 693 00be 2DD1     		bne	.L45
+ 346:main.c        ****   {
+ 347:main.c        ****     // Then we fade to black....
+ 348:main.c        ****     
+ 349:main.c        ****     showColor((r * fade) / 256, (g * fade) / 256, (b * fade) / 256, 0);
+ 694              		.loc 1 349 0 is_stmt 1
+ 695 00c0 184B     		ldr	r3, .L53
+ 696 00c2 9846     		mov	r8, r3
+ 697 00c4 5A69     		ldr	r2, [r3, #20]
+ 698 00c6 019C     		ldr	r4, [sp, #4]
+ 699 00c8 5443     		muls	r4, r2
+ 700 00ca 240A     		lsrs	r4, r4, #8
+ 701 00cc 5543     		muls	r5, r2
+ 702 00ce 2D0A     		lsrs	r5, r5, #8
+ 703 00d0 7A43     		muls	r2, r7
+ 704 00d2 120A     		lsrs	r2, r2, #8
+ 705 00d4 D2B2     		uxtb	r2, r2
+ 706 00d6 E9B2     		uxtb	r1, r5
+ 707 00d8 E0B2     		uxtb	r0, r4
+ 708 00da 0023     		movs	r3, #0
+ 709 00dc FFF7FEFF 		bl	showColor
+ 710              	.LVL70:
+ 350:main.c        ****     
+ 351:main.c        ****     if (fade > 0)
+ 711              		.loc 1 351 0
+ 712 00e0 4346     		mov	r3, r8
+ 713 00e2 5B69     		ldr	r3, [r3, #20]
+ 714 00e4 002B     		cmp	r3, #0
+ 715 00e6 02D0     		beq	.L52
+ 352:main.c        ****     {
+ 353:main.c        ****       fade--;
+ 716              		.loc 1 353 0
+ 717 00e8 013B     		subs	r3, r3, #1
+ 718 00ea 0E4A     		ldr	r2, .L53
+ 719 00ec 5361     		str	r3, [r2, #20]
+ 720              	.L52:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 20
+
+
+ 354:main.c        ****     }
+ 355:main.c        ****     counter = delay /10;
+ 721              		.loc 1 355 0
+ 722 00ee 0A21     		movs	r1, #10
+ 723 00f0 3000     		movs	r0, r6
+ 724 00f2 FFF7FEFF 		bl	__aeabi_uidiv
+ 725              	.LVL71:
+ 726 00f6 0B4B     		ldr	r3, .L53
+ 727 00f8 D860     		str	r0, [r3, #12]
+ 356:main.c        ****     if (fade == 0)
+ 728              		.loc 1 356 0
+ 729 00fa 5B69     		ldr	r3, [r3, #20]
+ 730 00fc 002B     		cmp	r3, #0
+ 731 00fe 0DD1     		bne	.L45
+ 357:main.c        ****     {
+ 358:main.c        ****       showColor(0, 0, 0, 0);
+ 732              		.loc 1 358 0
+ 733 0100 0022     		movs	r2, #0
+ 734 0102 0021     		movs	r1, #0
+ 735 0104 0020     		movs	r0, #0
+ 736 0106 FFF7FEFF 		bl	showColor
+ 737              	.LVL72:
+ 359:main.c        ****       statetmr = delay * 500;
+ 738              		.loc 1 359 0
+ 739 010a FA23     		movs	r3, #250
+ 740 010c 5B00     		lsls	r3, r3, #1
+ 741 010e 5E43     		muls	r6, r3
+ 742              	.LVL73:
+ 743 0110 044B     		ldr	r3, .L53
+ 744 0112 1E61     		str	r6, [r3, #16]
+ 360:main.c        ****       counter = statetmr;
+ 745              		.loc 1 360 0
+ 746 0114 DE60     		str	r6, [r3, #12]
+ 361:main.c        ****       state = 1;
+ 747              		.loc 1 361 0
+ 748 0116 0122     		movs	r2, #1
+ 749 0118 034B     		ldr	r3, .L53+4
+ 750 011a 1A70     		strb	r2, [r3]
+ 751              	.L45:
+ 362:main.c        ****     }
+ 363:main.c        ****   }
+ 364:main.c        **** }
+ 752              		.loc 1 364 0
+ 753 011c 02B0     		add	sp, sp, #8
+ 754              		@ sp needed
+ 755 011e 04BC     		pop	{r2}
+ 756 0120 9046     		mov	r8, r2
+ 757 0122 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 758              	.L54:
+ 759              		.align	2
+ 760              	.L53:
+ 761 0124 00000000 		.word	.LANCHOR0
+ 762 0128 00000000 		.word	.LANCHOR1
+ 763 012c 33333333 		.word	858993459
+ 764 0130 3333F33F 		.word	1072902963
+ 765              		.cfi_endproc
+ 766              	.LFE39:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 21
+
+
+ 767              		.size	detonate, .-detonate
+ 768              		.section	.text.device_task,"ax",%progbits
+ 769              		.align	2
+ 770              		.global	device_task
+ 771              		.code	16
+ 772              		.thumb_func
+ 773              		.type	device_task, %function
+ 774              	device_task:
+ 775              	.LFB33:
+  32:main.c        ****   if (device.state != device.prev_state)
+ 776              		.loc 1 32 0
+ 777              		.cfi_startproc
+ 778              		@ args = 0, pretend = 0, frame = 0
+ 779              		@ frame_needed = 0, uses_anonymous_args = 0
+ 780 0000 10B5     		push	{r4, lr}
+ 781              		.cfi_def_cfa_offset 8
+ 782              		.cfi_offset 4, -8
+ 783              		.cfi_offset 14, -4
+  33:main.c        ****   {
+ 784              		.loc 1 33 0
+ 785 0002 7A4A     		ldr	r2, .L74
+ 786 0004 1378     		ldrb	r3, [r2]
+ 787 0006 5278     		ldrb	r2, [r2, #1]
+ 788 0008 9342     		cmp	r3, r2
+ 789 000a 02D0     		beq	.L56
+  35:main.c        ****   }
+ 790              		.loc 1 35 0
+ 791 000c 0121     		movs	r1, #1
+ 792 000e 774A     		ldr	r2, .L74
+ 793 0010 9170     		strb	r1, [r2, #2]
+ 794              	.L56:
+  37:main.c        ****   switch (device.state)
+ 795              		.loc 1 37 0
+ 796 0012 764A     		ldr	r2, .L74
+ 797 0014 5370     		strb	r3, [r2, #1]
+  38:main.c        ****   {
+ 798              		.loc 1 38 0
+ 799 0016 012B     		cmp	r3, #1
+ 800 0018 00D1     		bne	.LCB793
+ 801 001a A7E0     		b	.L58	@long jump
+ 802              	.LCB793:
+ 803 001c 002B     		cmp	r3, #0
+ 804 001e 05D0     		beq	.L59
+ 805 0020 022B     		cmp	r3, #2
+ 806 0022 00D1     		bne	.LCB797
+ 807 0024 BFE0     		b	.L60	@long jump
+ 808              	.LCB797:
+ 809 0026 032B     		cmp	r3, #3
+ 810 0028 5BD0     		beq	.L61
+ 811 002a DEE0     		b	.L55
+ 812              	.L59:
+  42:main.c        ****     {
+ 813              		.loc 1 42 0
+ 814 002c 6F4B     		ldr	r3, .L74
+ 815 002e 9B78     		ldrb	r3, [r3, #2]
+ 816 0030 002B     		cmp	r3, #0
+ 817 0032 0BD0     		beq	.L62
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 22
+
+
+  44:main.c        ****       device.new_state = 0;
+ 818              		.loc 1 44 0
+ 819 0034 6423     		movs	r3, #100
+ 820 0036 0022     		movs	r2, #0
+ 821 0038 0021     		movs	r1, #0
+ 822 003a 0020     		movs	r0, #0
+ 823 003c FFF7FEFF 		bl	showColor
+ 824              	.LVL74:
+  45:main.c        ****       state = 1;
+ 825              		.loc 1 45 0
+ 826 0040 0022     		movs	r2, #0
+ 827 0042 6A4B     		ldr	r3, .L74
+ 828 0044 9A70     		strb	r2, [r3, #2]
+  46:main.c        ****     }
+ 829              		.loc 1 46 0
+ 830 0046 0132     		adds	r2, r2, #1
+ 831 0048 694B     		ldr	r3, .L74+4
+ 832 004a 1A70     		strb	r2, [r3]
+ 833              	.L62:
+  48:main.c        **** 
+ 834              		.loc 1 48 0
+ 835 004c 684C     		ldr	r4, .L74+4
+ 836 004e A279     		ldrb	r2, [r4, #6]
+ 837 0050 6179     		ldrb	r1, [r4, #5]
+ 838 0052 2079     		ldrb	r0, [r4, #4]
+ 839 0054 0023     		movs	r3, #0
+ 840 0056 FFF7FEFF 		bl	showColor
+ 841              	.LVL75:
+  50:main.c        ****     {
+ 842              		.loc 1 50 0
+ 843 005a 6379     		ldrb	r3, [r4, #5]
+ 844 005c FF2B     		cmp	r3, #255
+ 845 005e 0FD0     		beq	.L63
+  50:main.c        ****     {
+ 846              		.loc 1 50 0 is_stmt 0 discriminator 1
+ 847 0060 634A     		ldr	r2, .L74+4
+ 848 0062 1278     		ldrb	r2, [r2]
+ 849 0064 012A     		cmp	r2, #1
+ 850 0066 0BD1     		bne	.L63
+  52:main.c        ****       rgb[0]--;
+ 851              		.loc 1 52 0 is_stmt 1
+ 852 0068 0133     		adds	r3, r3, #1
+ 853 006a DBB2     		uxtb	r3, r3
+ 854 006c 604A     		ldr	r2, .L74+4
+ 855 006e 5371     		strb	r3, [r2, #5]
+  53:main.c        ****       if (rgb[1] == 255)
+ 856              		.loc 1 53 0
+ 857 0070 1179     		ldrb	r1, [r2, #4]
+ 858 0072 0139     		subs	r1, r1, #1
+ 859 0074 1171     		strb	r1, [r2, #4]
+  54:main.c        ****         state = 2;
+ 860              		.loc 1 54 0
+ 861 0076 FF2B     		cmp	r3, #255
+ 862 0078 02D1     		bne	.L63
+  55:main.c        ****     }
+ 863              		.loc 1 55 0
+ 864 007a 0222     		movs	r2, #2
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 23
+
+
+ 865 007c 5C4B     		ldr	r3, .L74+4
+ 866 007e 1A70     		strb	r2, [r3]
+ 867              	.L63:
+  57:main.c        ****     {
+ 868              		.loc 1 57 0
+ 869 0080 5B4B     		ldr	r3, .L74+4
+ 870 0082 9B79     		ldrb	r3, [r3, #6]
+ 871 0084 FF2B     		cmp	r3, #255
+ 872 0086 0FD0     		beq	.L64
+  57:main.c        ****     {
+ 873              		.loc 1 57 0 is_stmt 0 discriminator 1
+ 874 0088 594A     		ldr	r2, .L74+4
+ 875 008a 1278     		ldrb	r2, [r2]
+ 876 008c 022A     		cmp	r2, #2
+ 877 008e 0BD1     		bne	.L64
+  59:main.c        ****       rgb[1]--;
+ 878              		.loc 1 59 0 is_stmt 1
+ 879 0090 0133     		adds	r3, r3, #1
+ 880 0092 DBB2     		uxtb	r3, r3
+ 881 0094 564A     		ldr	r2, .L74+4
+ 882 0096 9371     		strb	r3, [r2, #6]
+  60:main.c        ****       if (rgb[2] == 255)
+ 883              		.loc 1 60 0
+ 884 0098 5179     		ldrb	r1, [r2, #5]
+ 885 009a 0139     		subs	r1, r1, #1
+ 886 009c 5171     		strb	r1, [r2, #5]
+  61:main.c        ****         state = 3;
+ 887              		.loc 1 61 0
+ 888 009e FF2B     		cmp	r3, #255
+ 889 00a0 02D1     		bne	.L64
+  62:main.c        ****     }
+ 890              		.loc 1 62 0
+ 891 00a2 0322     		movs	r2, #3
+ 892 00a4 524B     		ldr	r3, .L74+4
+ 893 00a6 1A70     		strb	r2, [r3]
+ 894              	.L64:
+  64:main.c        ****     {
+ 895              		.loc 1 64 0
+ 896 00a8 514B     		ldr	r3, .L74+4
+ 897 00aa 1B78     		ldrb	r3, [r3]
+ 898 00ac 032B     		cmp	r3, #3
+ 899 00ae 0CD1     		bne	.L65
+  66:main.c        ****       rgb[2]--;
+ 900              		.loc 1 66 0
+ 901 00b0 4F4A     		ldr	r2, .L74+4
+ 902 00b2 1379     		ldrb	r3, [r2, #4]
+ 903 00b4 0133     		adds	r3, r3, #1
+ 904 00b6 1371     		strb	r3, [r2, #4]
+  67:main.c        ****       if (rgb[2] == 0)
+ 905              		.loc 1 67 0
+ 906 00b8 9379     		ldrb	r3, [r2, #6]
+ 907 00ba 013B     		subs	r3, r3, #1
+ 908 00bc DBB2     		uxtb	r3, r3
+ 909 00be 9371     		strb	r3, [r2, #6]
+  68:main.c        ****         state = 1;
+ 910              		.loc 1 68 0
+ 911 00c0 002B     		cmp	r3, #0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 24
+
+
+ 912 00c2 02D1     		bne	.L65
+  69:main.c        ****     }
+ 913              		.loc 1 69 0
+ 914 00c4 0122     		movs	r2, #1
+ 915 00c6 4A4B     		ldr	r3, .L74+4
+ 916 00c8 1A70     		strb	r2, [r3]
+ 917              	.L65:
+  72:main.c        ****     {
+ 918              		.loc 1 72 0
+ 919 00ca FFF7FEFF 		bl	BTN_getPressed
+ 920              	.LVL76:
+ 921 00ce 0028     		cmp	r0, #0
+ 922 00d0 00D1     		bne	.LCB894
+ 923 00d2 8AE0     		b	.L55	@long jump
+ 924              	.LCB894:
+  74:main.c        ****       device.state = THEATER_CHASE;
+ 925              		.loc 1 74 0
+ 926 00d4 0020     		movs	r0, #0
+ 927 00d6 FFF7FEFF 		bl	LEDA_Write
+ 928              	.LVL77:
+  75:main.c        ****     }
+ 929              		.loc 1 75 0
+ 930 00da 0322     		movs	r2, #3
+ 931 00dc 434B     		ldr	r3, .L74
+ 932 00de 1A70     		strb	r2, [r3]
+ 933 00e0 83E0     		b	.L55
+ 934              	.L61:
+  83:main.c        ****     {
+ 935              		.loc 1 83 0
+ 936 00e2 424B     		ldr	r3, .L74
+ 937 00e4 9B78     		ldrb	r3, [r3, #2]
+ 938 00e6 002B     		cmp	r3, #0
+ 939 00e8 0DD0     		beq	.L66
+  85:main.c        ****       device.new_state = 0;
+ 940              		.loc 1 85 0
+ 941 00ea 6423     		movs	r3, #100
+ 942 00ec 0022     		movs	r2, #0
+ 943 00ee 0021     		movs	r1, #0
+ 944 00f0 0020     		movs	r0, #0
+ 945 00f2 FFF7FEFF 		bl	showColor
+ 946              	.LVL78:
+  86:main.c        ****       state = 1;
+ 947              		.loc 1 86 0
+ 948 00f6 0023     		movs	r3, #0
+ 949 00f8 3C4A     		ldr	r2, .L74
+ 950 00fa 9370     		strb	r3, [r2, #2]
+  87:main.c        ****       delaytmr = 0;
+ 951              		.loc 1 87 0
+ 952 00fc 0121     		movs	r1, #1
+ 953 00fe 3C4A     		ldr	r2, .L74+4
+ 954 0100 1170     		strb	r1, [r2]
+  88:main.c        ****     }
+ 955              		.loc 1 88 0
+ 956 0102 3C4A     		ldr	r2, .L74+8
+ 957 0104 1360     		str	r3, [r2]
+ 958              	.L66:
+  90:main.c        ****     {
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 25
+
+
+ 959              		.loc 1 90 0
+ 960 0106 FFF7FEFF 		bl	BTN_getPressed
+ 961              	.LVL79:
+ 962 010a 0028     		cmp	r0, #0
+ 963 010c 09D0     		beq	.L67
+  92:main.c        ****       if (state > 3)
+ 964              		.loc 1 92 0
+ 965 010e 384A     		ldr	r2, .L74+4
+ 966 0110 1378     		ldrb	r3, [r2]
+ 967 0112 0133     		adds	r3, r3, #1
+ 968 0114 DBB2     		uxtb	r3, r3
+ 969 0116 1370     		strb	r3, [r2]
+  93:main.c        ****       {
+ 970              		.loc 1 93 0
+ 971 0118 032B     		cmp	r3, #3
+ 972 011a 02D9     		bls	.L67
+  95:main.c        ****       }
+ 973              		.loc 1 95 0
+ 974 011c 0122     		movs	r2, #1
+ 975 011e 344B     		ldr	r3, .L74+4
+ 976 0120 1A70     		strb	r2, [r3]
+ 977              	.L67:
+  98:main.c        ****     {
+ 978              		.loc 1 98 0
+ 979 0122 FFF7FEFF 		bl	BTN_getHeld
+ 980              	.LVL80:
+ 981 0126 0028     		cmp	r0, #0
+ 982 0128 02D0     		beq	.L68
+ 100:main.c        ****     }
+ 983              		.loc 1 100 0
+ 984 012a 0122     		movs	r2, #1
+ 985 012c 2F4B     		ldr	r3, .L74
+ 986 012e 1A70     		strb	r2, [r3]
+ 987              	.L68:
+ 103:main.c        ****     {
+ 988              		.loc 1 103 0
+ 989 0130 2F4B     		ldr	r3, .L74+4
+ 990 0132 1B78     		ldrb	r3, [r3]
+ 991 0134 022B     		cmp	r3, #2
+ 992 0136 0BD0     		beq	.L69
+ 993 0138 032B     		cmp	r3, #3
+ 994 013a 10D0     		beq	.L70
+ 995 013c 012B     		cmp	r3, #1
+ 996 013e 54D1     		bne	.L55
+ 106:main.c        ****       break;
+ 997              		.loc 1 106 0
+ 998 0140 F433     		adds	r3, r3, #244
+ 999 0142 FF33     		adds	r3, r3, #255
+ 1000 0144 7F22     		movs	r2, #127
+ 1001 0146 7F21     		movs	r1, #127
+ 1002 0148 7F20     		movs	r0, #127
+ 1003 014a FFF7FEFF 		bl	theaterChase
+ 1004              	.LVL81:
+ 107:main.c        ****     case 2:
+ 1005              		.loc 1 107 0
+ 1006 014e 4CE0     		b	.L55
+ 1007              	.L69:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 26
+
+
+ 109:main.c        ****       break;
+ 1008              		.loc 1 109 0
+ 1009 0150 FA23     		movs	r3, #250
+ 1010 0152 0022     		movs	r2, #0
+ 1011 0154 0021     		movs	r1, #0
+ 1012 0156 7F20     		movs	r0, #127
+ 1013 0158 FFF7FEFF 		bl	theaterChase
+ 1014              	.LVL82:
+ 110:main.c        ****     case 3:
+ 1015              		.loc 1 110 0
+ 1016 015c 45E0     		b	.L55
+ 1017              	.L70:
+ 112:main.c        ****       break;
+ 1018              		.loc 1 112 0
+ 1019 015e 6423     		movs	r3, #100
+ 1020 0160 7F22     		movs	r2, #127
+ 1021 0162 0021     		movs	r1, #0
+ 1022 0164 0020     		movs	r0, #0
+ 1023 0166 FFF7FEFF 		bl	theaterChase
+ 1024              	.LVL83:
+ 113:main.c        ****     }
+ 1025              		.loc 1 113 0
+ 1026 016a 3EE0     		b	.L55
+ 1027              	.L58:
+ 120:main.c        ****     {
+ 1028              		.loc 1 120 0
+ 1029 016c 1F4B     		ldr	r3, .L74
+ 1030 016e 9B78     		ldrb	r3, [r3, #2]
+ 1031 0170 002B     		cmp	r3, #0
+ 1032 0172 08D0     		beq	.L72
+ 122:main.c        ****       device.new_state = 0;
+ 1033              		.loc 1 122 0
+ 1034 0174 6423     		movs	r3, #100
+ 1035 0176 0022     		movs	r2, #0
+ 1036 0178 0021     		movs	r1, #0
+ 1037 017a 0020     		movs	r0, #0
+ 1038 017c FFF7FEFF 		bl	showColor
+ 1039              	.LVL84:
+ 123:main.c        ****     }
+ 1040              		.loc 1 123 0
+ 1041 0180 0022     		movs	r2, #0
+ 1042 0182 1A4B     		ldr	r3, .L74
+ 1043 0184 9A70     		strb	r2, [r3, #2]
+ 1044              	.L72:
+ 126:main.c        ****     if (BTN_getPressed())
+ 1045              		.loc 1 126 0
+ 1046 0186 FA23     		movs	r3, #250
+ 1047 0188 5B00     		lsls	r3, r3, #1
+ 1048 018a 0522     		movs	r2, #5
+ 1049 018c 1421     		movs	r1, #20
+ 1050 018e FA20     		movs	r0, #250
+ 1051 0190 8000     		lsls	r0, r0, #2
+ 1052 0192 FFF7FEFF 		bl	rainbowCycle
+ 1053              	.LVL85:
+ 127:main.c        ****     {
+ 1054              		.loc 1 127 0
+ 1055 0196 FFF7FEFF 		bl	BTN_getPressed
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 27
+
+
+ 1056              	.LVL86:
+ 1057 019a 0028     		cmp	r0, #0
+ 1058 019c 25D0     		beq	.L55
+ 129:main.c        ****     }
+ 1059              		.loc 1 129 0
+ 1060 019e 0222     		movs	r2, #2
+ 1061 01a0 124B     		ldr	r3, .L74
+ 1062 01a2 1A70     		strb	r2, [r3]
+ 1063 01a4 21E0     		b	.L55
+ 1064              	.L60:
+ 135:main.c        ****     {
+ 1065              		.loc 1 135 0
+ 1066 01a6 114B     		ldr	r3, .L74
+ 1067 01a8 9B78     		ldrb	r3, [r3, #2]
+ 1068 01aa 002B     		cmp	r3, #0
+ 1069 01ac 0FD0     		beq	.L73
+ 137:main.c        ****       device.new_state = 0;
+ 1070              		.loc 1 137 0
+ 1071 01ae 6423     		movs	r3, #100
+ 1072 01b0 0022     		movs	r2, #0
+ 1073 01b2 0021     		movs	r1, #0
+ 1074 01b4 0020     		movs	r0, #0
+ 1075 01b6 FFF7FEFF 		bl	showColor
+ 1076              	.LVL87:
+ 138:main.c        ****       delaytmr = 0;
+ 1077              		.loc 1 138 0
+ 1078 01ba 0022     		movs	r2, #0
+ 1079 01bc 0B4B     		ldr	r3, .L74
+ 1080 01be 9A70     		strb	r2, [r3, #2]
+ 139:main.c        ****       state = 1;
+ 1081              		.loc 1 139 0
+ 1082 01c0 0C4B     		ldr	r3, .L74+8
+ 1083 01c2 1A60     		str	r2, [r3]
+ 140:main.c        ****       fade = 255;
+ 1084              		.loc 1 140 0
+ 1085 01c4 0121     		movs	r1, #1
+ 1086 01c6 0A4A     		ldr	r2, .L74+4
+ 1087 01c8 1170     		strb	r1, [r2]
+ 141:main.c        ****     }
+ 1088              		.loc 1 141 0
+ 1089 01ca FF22     		movs	r2, #255
+ 1090 01cc 5A61     		str	r2, [r3, #20]
+ 1091              	.L73:
+ 143:main.c        ****     if (BTN_getPressed())
+ 1092              		.loc 1 143 0
+ 1093 01ce FA23     		movs	r3, #250
+ 1094 01d0 9B00     		lsls	r3, r3, #2
+ 1095 01d2 FF22     		movs	r2, #255
+ 1096 01d4 FF21     		movs	r1, #255
+ 1097 01d6 FF20     		movs	r0, #255
+ 1098 01d8 FFF7FEFF 		bl	detonate
+ 1099              	.LVL88:
+ 144:main.c        ****     {
+ 1100              		.loc 1 144 0
+ 1101 01dc FFF7FEFF 		bl	BTN_getPressed
+ 1102              	.LVL89:
+ 1103 01e0 0028     		cmp	r0, #0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 28
+
+
+ 1104 01e2 02D0     		beq	.L55
+ 146:main.c        ****     }
+ 1105              		.loc 1 146 0
+ 1106 01e4 0022     		movs	r2, #0
+ 1107 01e6 014B     		ldr	r3, .L74
+ 1108 01e8 1A70     		strb	r2, [r3]
+ 1109              	.L55:
+ 151:main.c        **** 
+ 1110              		.loc 1 151 0
+ 1111              		@ sp needed
+ 1112 01ea 10BD     		pop	{r4, pc}
+ 1113              	.L75:
+ 1114              		.align	2
+ 1115              	.L74:
+ 1116 01ec 00000000 		.word	device
+ 1117 01f0 00000000 		.word	.LANCHOR1
+ 1118 01f4 00000000 		.word	.LANCHOR0
+ 1119              		.cfi_endproc
+ 1120              	.LFE33:
+ 1121              		.size	device_task, .-device_task
+ 1122              		.section	.text.main,"ax",%progbits
+ 1123              		.align	2
+ 1124              		.global	main
+ 1125              		.code	16
+ 1126              		.thumb_func
+ 1127              		.type	main, %function
+ 1128              	main:
+ 1129              	.LFB34:
+ 154:main.c        ****   CyGlobalIntEnable; /* Enable global interrupts. */
+ 1130              		.loc 1 154 0
+ 1131              		.cfi_startproc
+ 1132              		@ args = 0, pretend = 0, frame = 0
+ 1133              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1134 0000 10B5     		push	{r4, lr}
+ 1135              		.cfi_def_cfa_offset 8
+ 1136              		.cfi_offset 4, -8
+ 1137              		.cfi_offset 14, -4
+ 155:main.c        ****   device.state = IDLE;
+ 1138              		.loc 1 155 0
+ 1139              		.syntax divided
+ 1140              	@ 155 "main.c" 1
+ 1141 0002 62B6     		CPSIE   i
+ 1142              	@ 0 "" 2
+ 156:main.c        ****   device.new_state = true;
+ 1143              		.loc 1 156 0
+ 1144              		.thumb
+ 1145              		.syntax unified
+ 1146 0004 0C4B     		ldr	r3, .L79
+ 1147 0006 0022     		movs	r2, #0
+ 1148 0008 1A70     		strb	r2, [r3]
+ 157:main.c        ****   uint32_t ticks = 0;
+ 1149              		.loc 1 157 0
+ 1150 000a 0132     		adds	r2, r2, #1
+ 1151 000c 9A70     		strb	r2, [r3, #2]
+ 1152              	.LVL90:
+ 159:main.c        ****   for (;;)
+ 1153              		.loc 1 159 0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 29
+
+
+ 1154 000e FFF7FEFF 		bl	NeoPixel_Init
+ 1155              	.LVL91:
+ 158:main.c        ****   NeoPixel_Init();
+ 1156              		.loc 1 158 0
+ 1157 0012 0024     		movs	r4, #0
+ 1158              	.LVL92:
+ 1159              	.L78:
+ 162:main.c        ****     device_task();
+ 1160              		.loc 1 162 0
+ 1161 0014 FFF7FEFF 		bl	BTN_task
+ 1162              	.LVL93:
+ 163:main.c        ****     if (ticks > 1000)
+ 1163              		.loc 1 163 0
+ 1164 0018 FFF7FEFF 		bl	device_task
+ 1165              	.LVL94:
+ 164:main.c        ****     { //HeartBeat
+ 1166              		.loc 1 164 0
+ 1167 001c FA23     		movs	r3, #250
+ 1168 001e 9B00     		lsls	r3, r3, #2
+ 1169 0020 9C42     		cmp	r4, r3
+ 1170 0022 07D9     		bls	.L77
+ 166:main.c        ****       ticks = 0;
+ 1171              		.loc 1 166 0
+ 1172 0024 FFF7FEFF 		bl	LEDA_Read
+ 1173              	.LVL95:
+ 1174 0028 4342     		rsbs	r3, r0, #0
+ 1175 002a 5841     		adcs	r0, r0, r3
+ 1176 002c C0B2     		uxtb	r0, r0
+ 1177 002e FFF7FEFF 		bl	LEDA_Write
+ 1178              	.LVL96:
+ 167:main.c        ****     }
+ 1179              		.loc 1 167 0
+ 1180 0032 0024     		movs	r4, #0
+ 1181              	.LVL97:
+ 1182              	.L77:
+ 169:main.c        ****   }
+ 1183              		.loc 1 169 0
+ 1184 0034 0134     		adds	r4, r4, #1
+ 1185              	.LVL98:
+ 170:main.c        **** }
+ 1186              		.loc 1 170 0
+ 1187 0036 EDE7     		b	.L78
+ 1188              	.L80:
+ 1189              		.align	2
+ 1190              	.L79:
+ 1191 0038 00000000 		.word	device
+ 1192              		.cfi_endproc
+ 1193              	.LFE34:
+ 1194              		.size	main, .-main
+ 1195              		.global	firstPixelHue
+ 1196              		.global	q
+ 1197              		.global	fade
+ 1198              		.global	statetmr
+ 1199              		.global	counter
+ 1200              		.global	delaytmr
+ 1201              		.global	state
+ 1202              		.global	ind
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 30
+
+
+ 1203              		.global	rgb
+ 1204              		.data
+ 1205              		.align	2
+ 1206              		.set	.LANCHOR1,. + 0
+ 1207              		.type	state, %object
+ 1208              		.size	state, 1
+ 1209              	state:
+ 1210 0000 01       		.byte	1
+ 1211 0001 000000   		.space	3
+ 1212              		.type	rgb, %object
+ 1213              		.size	rgb, 3
+ 1214              	rgb:
+ 1215 0004 FF       		.byte	-1
+ 1216 0005 00       		.byte	0
+ 1217 0006 00       		.byte	0
+ 1218              		.bss
+ 1219              		.align	2
+ 1220              		.set	.LANCHOR0,. + 0
+ 1221              		.type	delaytmr, %object
+ 1222              		.size	delaytmr, 4
+ 1223              	delaytmr:
+ 1224 0000 00000000 		.space	4
+ 1225              		.type	q, %object
+ 1226              		.size	q, 4
+ 1227              	q:
+ 1228 0004 00000000 		.space	4
+ 1229              		.type	firstPixelHue, %object
+ 1230              		.size	firstPixelHue, 4
+ 1231              	firstPixelHue:
+ 1232 0008 00000000 		.space	4
+ 1233              		.type	counter, %object
+ 1234              		.size	counter, 4
+ 1235              	counter:
+ 1236 000c 00000000 		.space	4
+ 1237              		.type	statetmr, %object
+ 1238              		.size	statetmr, 4
+ 1239              	statetmr:
+ 1240 0010 00000000 		.space	4
+ 1241              		.type	fade, %object
+ 1242              		.size	fade, 4
+ 1243              	fade:
+ 1244 0014 00000000 		.space	4
+ 1245              		.type	ind, %object
+ 1246              		.size	ind, 1
+ 1247              	ind:
+ 1248 0018 00       		.space	1
+ 1249              		.text
+ 1250              	.Letext0:
+ 1251              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.4\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1252              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.4\\psoc creator\\import\\gnu\\arm\\5.4.
+ 1253              		.file 4 "./btns.h"
+ 1254              		.file 5 "Generated_Source\\PSoC4/NeoPixel_sled.h"
+ 1255              		.file 6 "Generated_Source\\PSoC4/LEDA.h"
+ 1256              		.section	.debug_info,"",%progbits
+ 1257              	.Ldebug_info0:
+ 1258 0000 B5080000 		.4byte	0x8b5
+ 1259 0004 0400     		.2byte	0x4
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 31
+
+
+ 1260 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1261 000a 04       		.byte	0x4
+ 1262 000b 01       		.uleb128 0x1
+ 1263 000c A1000000 		.4byte	.LASF64
+ 1264 0010 0C       		.byte	0xc
+ 1265 0011 C3020000 		.4byte	.LASF65
+ 1266 0015 8D010000 		.4byte	.LASF66
+ 1267 0019 60000000 		.4byte	.Ldebug_ranges0+0x60
+ 1268 001d 00000000 		.4byte	0
+ 1269 0021 00000000 		.4byte	.Ldebug_line0
+ 1270 0025 02       		.uleb128 0x2
+ 1271 0026 01       		.byte	0x1
+ 1272 0027 06       		.byte	0x6
+ 1273 0028 5B010000 		.4byte	.LASF0
+ 1274 002c 03       		.uleb128 0x3
+ 1275 002d B7010000 		.4byte	.LASF3
+ 1276 0031 02       		.byte	0x2
+ 1277 0032 1D       		.byte	0x1d
+ 1278 0033 37000000 		.4byte	0x37
+ 1279 0037 02       		.uleb128 0x2
+ 1280 0038 01       		.byte	0x1
+ 1281 0039 08       		.byte	0x8
+ 1282 003a C7010000 		.4byte	.LASF1
+ 1283 003e 02       		.uleb128 0x2
+ 1284 003f 02       		.byte	0x2
+ 1285 0040 05       		.byte	0x5
+ 1286 0041 34000000 		.4byte	.LASF2
+ 1287 0045 03       		.uleb128 0x3
+ 1288 0046 96000000 		.4byte	.LASF4
+ 1289 004a 02       		.byte	0x2
+ 1290 004b 2B       		.byte	0x2b
+ 1291 004c 50000000 		.4byte	0x50
+ 1292 0050 02       		.uleb128 0x2
+ 1293 0051 02       		.byte	0x2
+ 1294 0052 07       		.byte	0x7
+ 1295 0053 4C020000 		.4byte	.LASF5
+ 1296 0057 02       		.uleb128 0x2
+ 1297 0058 04       		.byte	0x4
+ 1298 0059 05       		.byte	0x5
+ 1299 005a 74020000 		.4byte	.LASF6
+ 1300 005e 03       		.uleb128 0x3
+ 1301 005f 7C000000 		.4byte	.LASF7
+ 1302 0063 02       		.byte	0x2
+ 1303 0064 41       		.byte	0x41
+ 1304 0065 69000000 		.4byte	0x69
+ 1305 0069 02       		.uleb128 0x2
+ 1306 006a 04       		.byte	0x4
+ 1307 006b 07       		.byte	0x7
+ 1308 006c DD020000 		.4byte	.LASF8
+ 1309 0070 02       		.uleb128 0x2
+ 1310 0071 08       		.byte	0x8
+ 1311 0072 05       		.byte	0x5
+ 1312 0073 6E000000 		.4byte	.LASF9
+ 1313 0077 02       		.uleb128 0x2
+ 1314 0078 08       		.byte	0x8
+ 1315 0079 07       		.byte	0x7
+ 1316 007a 0D020000 		.4byte	.LASF10
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 32
+
+
+ 1317 007e 04       		.uleb128 0x4
+ 1318 007f 04       		.byte	0x4
+ 1319 0080 05       		.byte	0x5
+ 1320 0081 696E7400 		.ascii	"int\000"
+ 1321 0085 02       		.uleb128 0x2
+ 1322 0086 04       		.byte	0x4
+ 1323 0087 07       		.byte	0x7
+ 1324 0088 2D020000 		.4byte	.LASF11
+ 1325 008c 03       		.uleb128 0x3
+ 1326 008d 3E010000 		.4byte	.LASF12
+ 1327 0091 03       		.byte	0x3
+ 1328 0092 18       		.byte	0x18
+ 1329 0093 2C000000 		.4byte	0x2c
+ 1330 0097 03       		.uleb128 0x3
+ 1331 0098 3A020000 		.4byte	.LASF13
+ 1332 009c 03       		.byte	0x3
+ 1333 009d 24       		.byte	0x24
+ 1334 009e 45000000 		.4byte	0x45
+ 1335 00a2 03       		.uleb128 0x3
+ 1336 00a3 24020000 		.4byte	.LASF14
+ 1337 00a7 03       		.byte	0x3
+ 1338 00a8 30       		.byte	0x30
+ 1339 00a9 5E000000 		.4byte	0x5e
+ 1340 00ad 02       		.uleb128 0x2
+ 1341 00ae 04       		.byte	0x4
+ 1342 00af 04       		.byte	0x4
+ 1343 00b0 6E010000 		.4byte	.LASF15
+ 1344 00b4 02       		.uleb128 0x2
+ 1345 00b5 08       		.byte	0x8
+ 1346 00b6 04       		.byte	0x4
+ 1347 00b7 EF020000 		.4byte	.LASF16
+ 1348 00bb 02       		.uleb128 0x2
+ 1349 00bc 01       		.byte	0x1
+ 1350 00bd 08       		.byte	0x8
+ 1351 00be 6F020000 		.4byte	.LASF17
+ 1352 00c2 02       		.uleb128 0x2
+ 1353 00c3 08       		.byte	0x8
+ 1354 00c4 04       		.byte	0x4
+ 1355 00c5 DE010000 		.4byte	.LASF18
+ 1356 00c9 02       		.uleb128 0x2
+ 1357 00ca 04       		.byte	0x4
+ 1358 00cb 07       		.byte	0x7
+ 1359 00cc 4C000000 		.4byte	.LASF19
+ 1360 00d0 05       		.uleb128 0x5
+ 1361 00d1 2F010000 		.4byte	.LASF26
+ 1362 00d5 0C       		.byte	0xc
+ 1363 00d6 04       		.byte	0x4
+ 1364 00d7 16       		.byte	0x16
+ 1365 00d8 19010000 		.4byte	0x119
+ 1366 00dc 06       		.uleb128 0x6
+ 1367 00dd F6020000 		.4byte	.LASF20
+ 1368 00e1 04       		.byte	0x4
+ 1369 00e2 18       		.byte	0x18
+ 1370 00e3 19010000 		.4byte	0x119
+ 1371 00e7 00       		.byte	0
+ 1372 00e8 06       		.uleb128 0x6
+ 1373 00e9 68020000 		.4byte	.LASF21
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 33
+
+
+ 1374 00ed 04       		.byte	0x4
+ 1375 00ee 19       		.byte	0x19
+ 1376 00ef 19010000 		.4byte	0x119
+ 1377 00f3 01       		.byte	0x1
+ 1378 00f4 06       		.uleb128 0x6
+ 1379 00f5 74010000 		.4byte	.LASF22
+ 1380 00f9 04       		.byte	0x4
+ 1381 00fa 1A       		.byte	0x1a
+ 1382 00fb 19010000 		.4byte	0x119
+ 1383 00ff 02       		.byte	0x2
+ 1384 0100 06       		.uleb128 0x6
+ 1385 0101 46010000 		.4byte	.LASF23
+ 1386 0105 04       		.byte	0x4
+ 1387 0106 1B       		.byte	0x1b
+ 1388 0107 A2000000 		.4byte	0xa2
+ 1389 010b 04       		.byte	0x4
+ 1390 010c 06       		.uleb128 0x6
+ 1391 010d C1010000 		.4byte	.LASF24
+ 1392 0111 04       		.byte	0x4
+ 1393 0112 1C       		.byte	0x1c
+ 1394 0113 19010000 		.4byte	0x119
+ 1395 0117 08       		.byte	0x8
+ 1396 0118 00       		.byte	0
+ 1397 0119 02       		.uleb128 0x2
+ 1398 011a 01       		.byte	0x1
+ 1399 011b 02       		.byte	0x2
+ 1400 011c AD020000 		.4byte	.LASF25
+ 1401 0120 03       		.uleb128 0x3
+ 1402 0121 2F010000 		.4byte	.LASF26
+ 1403 0125 04       		.byte	0x4
+ 1404 0126 1D       		.byte	0x1d
+ 1405 0127 D0000000 		.4byte	0xd0
+ 1406 012b 07       		.uleb128 0x7
+ 1407 012c 4E030000 		.4byte	.LASF31
+ 1408 0130 01       		.byte	0x1
+ 1409 0131 37000000 		.4byte	0x37
+ 1410 0135 04       		.byte	0x4
+ 1411 0136 1F       		.byte	0x1f
+ 1412 0137 54010000 		.4byte	0x154
+ 1413 013b 08       		.uleb128 0x8
+ 1414 013c 56010000 		.4byte	.LASF27
+ 1415 0140 00       		.byte	0
+ 1416 0141 08       		.uleb128 0x8
+ 1417 0142 99020000 		.4byte	.LASF28
+ 1418 0146 01       		.byte	0x1
+ 1419 0147 08       		.uleb128 0x8
+ 1420 0148 2D030000 		.4byte	.LASF29
+ 1421 014c 02       		.byte	0x2
+ 1422 014d 08       		.uleb128 0x8
+ 1423 014e 3E000000 		.4byte	.LASF30
+ 1424 0152 03       		.byte	0x3
+ 1425 0153 00       		.byte	0
+ 1426 0154 03       		.uleb128 0x3
+ 1427 0155 4E030000 		.4byte	.LASF31
+ 1428 0159 04       		.byte	0x4
+ 1429 015a 25       		.byte	0x25
+ 1430 015b 2B010000 		.4byte	0x12b
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 34
+
+
+ 1431 015f 05       		.uleb128 0x5
+ 1432 0160 0D030000 		.4byte	.LASF32
+ 1433 0164 14       		.byte	0x14
+ 1434 0165 04       		.byte	0x4
+ 1435 0166 27       		.byte	0x27
+ 1436 0167 A8010000 		.4byte	0x1a8
+ 1437 016b 06       		.uleb128 0x6
+ 1438 016c 20000000 		.4byte	.LASF33
+ 1439 0170 04       		.byte	0x4
+ 1440 0171 29       		.byte	0x29
+ 1441 0172 54010000 		.4byte	0x154
+ 1442 0176 00       		.byte	0
+ 1443 0177 06       		.uleb128 0x6
+ 1444 0178 43030000 		.4byte	.LASF34
+ 1445 017c 04       		.byte	0x4
+ 1446 017d 2A       		.byte	0x2a
+ 1447 017e 54010000 		.4byte	0x154
+ 1448 0182 01       		.byte	0x1
+ 1449 0183 06       		.uleb128 0x6
+ 1450 0184 FD010000 		.4byte	.LASF35
+ 1451 0188 04       		.byte	0x4
+ 1452 0189 2B       		.byte	0x2b
+ 1453 018a 19010000 		.4byte	0x119
+ 1454 018e 02       		.byte	0x2
+ 1455 018f 06       		.uleb128 0x6
+ 1456 0190 46010000 		.4byte	.LASF23
+ 1457 0194 04       		.byte	0x4
+ 1458 0195 2C       		.byte	0x2c
+ 1459 0196 97000000 		.4byte	0x97
+ 1460 019a 04       		.byte	0x4
+ 1461 019b 09       		.uleb128 0x9
+ 1462 019c 62746E00 		.ascii	"btn\000"
+ 1463 01a0 04       		.byte	0x4
+ 1464 01a1 2D       		.byte	0x2d
+ 1465 01a2 20010000 		.4byte	0x120
+ 1466 01a6 08       		.byte	0x8
+ 1467 01a7 00       		.byte	0
+ 1468 01a8 03       		.uleb128 0x3
+ 1469 01a9 0D030000 		.4byte	.LASF32
+ 1470 01ad 04       		.byte	0x4
+ 1471 01ae 2E       		.byte	0x2e
+ 1472 01af 5F010000 		.4byte	0x15f
+ 1473 01b3 0A       		.uleb128 0xa
+ 1474 01b4 4C010000 		.4byte	.LASF37
+ 1475 01b8 01       		.byte	0x1
+ 1476 01b9 AE       		.byte	0xae
+ 1477 01ba 00000000 		.4byte	.LFB35
+ 1478 01be 54000000 		.4byte	.LFE35-.LFB35
+ 1479 01c2 01       		.uleb128 0x1
+ 1480 01c3 9C       		.byte	0x9c
+ 1481 01c4 3B020000 		.4byte	0x23b
+ 1482 01c8 0B       		.uleb128 0xb
+ 1483 01c9 7200     		.ascii	"r\000"
+ 1484 01cb 01       		.byte	0x1
+ 1485 01cc AE       		.byte	0xae
+ 1486 01cd 8C000000 		.4byte	0x8c
+ 1487 01d1 00000000 		.4byte	.LLST0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 35
+
+
+ 1488 01d5 0B       		.uleb128 0xb
+ 1489 01d6 6700     		.ascii	"g\000"
+ 1490 01d8 01       		.byte	0x1
+ 1491 01d9 AE       		.byte	0xae
+ 1492 01da 8C000000 		.4byte	0x8c
+ 1493 01de 3A000000 		.4byte	.LLST1
+ 1494 01e2 0B       		.uleb128 0xb
+ 1495 01e3 6200     		.ascii	"b\000"
+ 1496 01e5 01       		.byte	0x1
+ 1497 01e6 AE       		.byte	0xae
+ 1498 01e7 8C000000 		.4byte	0x8c
+ 1499 01eb 74000000 		.4byte	.LLST2
+ 1500 01ef 0C       		.uleb128 0xc
+ 1501 01f0 87000000 		.4byte	.LASF36
+ 1502 01f4 01       		.byte	0x1
+ 1503 01f5 AE       		.byte	0xae
+ 1504 01f6 A2000000 		.4byte	0xa2
+ 1505 01fa AE000000 		.4byte	.LLST3
+ 1506 01fe 0D       		.uleb128 0xd
+ 1507 01ff 00000000 		.4byte	.Ldebug_ranges0+0
+ 1508 0203 31020000 		.4byte	0x231
+ 1509 0207 0E       		.uleb128 0xe
+ 1510 0208 7000     		.ascii	"p\000"
+ 1511 020a 01       		.byte	0x1
+ 1512 020b B2       		.byte	0xb2
+ 1513 020c 7E000000 		.4byte	0x7e
+ 1514 0210 DA000000 		.4byte	.LLST4
+ 1515 0214 0F       		.uleb128 0xf
+ 1516 0215 22000000 		.4byte	.LVL3
+ 1517 0219 60080000 		.4byte	0x860
+ 1518 021d 10       		.uleb128 0x10
+ 1519 021e 01       		.uleb128 0x1
+ 1520 021f 50       		.byte	0x50
+ 1521 0220 02       		.uleb128 0x2
+ 1522 0221 75       		.byte	0x75
+ 1523 0222 00       		.sleb128 0
+ 1524 0223 10       		.uleb128 0x10
+ 1525 0224 01       		.uleb128 0x1
+ 1526 0225 51       		.byte	0x51
+ 1527 0226 02       		.uleb128 0x2
+ 1528 0227 76       		.byte	0x76
+ 1529 0228 00       		.sleb128 0
+ 1530 0229 10       		.uleb128 0x10
+ 1531 022a 01       		.uleb128 0x1
+ 1532 022b 52       		.byte	0x52
+ 1533 022c 02       		.uleb128 0x2
+ 1534 022d 77       		.byte	0x77
+ 1535 022e 00       		.sleb128 0
+ 1536 022f 00       		.byte	0
+ 1537 0230 00       		.byte	0
+ 1538 0231 11       		.uleb128 0x11
+ 1539 0232 30000000 		.4byte	.LVL7
+ 1540 0236 6B080000 		.4byte	0x86b
+ 1541 023a 00       		.byte	0
+ 1542 023b 0A       		.uleb128 0xa
+ 1543 023c 83010000 		.4byte	.LASF38
+ 1544 0240 01       		.byte	0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 36
+
+
+ 1545 0241 C1       		.byte	0xc1
+ 1546 0242 00000000 		.4byte	.LFB36
+ 1547 0246 78000000 		.4byte	.LFE36-.LFB36
+ 1548 024a 01       		.uleb128 0x1
+ 1549 024b 9C       		.byte	0x9c
+ 1550 024c F7020000 		.4byte	0x2f7
+ 1551 0250 0B       		.uleb128 0xb
+ 1552 0251 7200     		.ascii	"r\000"
+ 1553 0253 01       		.byte	0x1
+ 1554 0254 C1       		.byte	0xc1
+ 1555 0255 8C000000 		.4byte	0x8c
+ 1556 0259 F8000000 		.4byte	.LLST5
+ 1557 025d 0B       		.uleb128 0xb
+ 1558 025e 6700     		.ascii	"g\000"
+ 1559 0260 01       		.byte	0x1
+ 1560 0261 C1       		.byte	0xc1
+ 1561 0262 8C000000 		.4byte	0x8c
+ 1562 0266 32010000 		.4byte	.LLST6
+ 1563 026a 0B       		.uleb128 0xb
+ 1564 026b 6200     		.ascii	"b\000"
+ 1565 026d 01       		.byte	0x1
+ 1566 026e C1       		.byte	0xc1
+ 1567 026f 8C000000 		.4byte	0x8c
+ 1568 0273 6C010000 		.4byte	.LLST7
+ 1569 0277 0C       		.uleb128 0xc
+ 1570 0278 87000000 		.4byte	.LASF36
+ 1571 027c 01       		.byte	0x1
+ 1572 027d C1       		.byte	0xc1
+ 1573 027e A2000000 		.4byte	0xa2
+ 1574 0282 A6010000 		.4byte	.LLST8
+ 1575 0286 12       		.uleb128 0x12
+ 1576 0287 18000000 		.4byte	.Ldebug_ranges0+0x18
+ 1577 028b 0E       		.uleb128 0xe
+ 1578 028c 6900     		.ascii	"i\000"
+ 1579 028e 01       		.byte	0x1
+ 1580 028f C5       		.byte	0xc5
+ 1581 0290 A2000000 		.4byte	0xa2
+ 1582 0294 D2010000 		.4byte	.LLST9
+ 1583 0298 12       		.uleb128 0x12
+ 1584 0299 30000000 		.4byte	.Ldebug_ranges0+0x30
+ 1585 029d 0E       		.uleb128 0xe
+ 1586 029e 7000     		.ascii	"p\000"
+ 1587 02a0 01       		.byte	0x1
+ 1588 02a1 C8       		.byte	0xc8
+ 1589 02a2 A2000000 		.4byte	0xa2
+ 1590 02a6 F0010000 		.4byte	.LLST10
+ 1591 02aa 13       		.uleb128 0x13
+ 1592 02ab 24000000 		.4byte	.LVL13
+ 1593 02af 60080000 		.4byte	0x860
+ 1594 02b3 CE020000 		.4byte	0x2ce
+ 1595 02b7 10       		.uleb128 0x10
+ 1596 02b8 01       		.uleb128 0x1
+ 1597 02b9 50       		.byte	0x50
+ 1598 02ba 04       		.uleb128 0x4
+ 1599 02bb 7D       		.byte	0x7d
+ 1600 02bc 00       		.sleb128 0
+ 1601 02bd 94       		.byte	0x94
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 37
+
+
+ 1602 02be 01       		.byte	0x1
+ 1603 02bf 10       		.uleb128 0x10
+ 1604 02c0 01       		.uleb128 0x1
+ 1605 02c1 51       		.byte	0x51
+ 1606 02c2 04       		.uleb128 0x4
+ 1607 02c3 91       		.byte	0x91
+ 1608 02c4 64       		.sleb128 -28
+ 1609 02c5 94       		.byte	0x94
+ 1610 02c6 01       		.byte	0x1
+ 1611 02c7 10       		.uleb128 0x10
+ 1612 02c8 01       		.uleb128 0x1
+ 1613 02c9 52       		.byte	0x52
+ 1614 02ca 02       		.uleb128 0x2
+ 1615 02cb 77       		.byte	0x77
+ 1616 02cc 00       		.sleb128 0
+ 1617 02cd 00       		.byte	0
+ 1618 02ce 13       		.uleb128 0x13
+ 1619 02cf 3C000000 		.4byte	.LVL18
+ 1620 02d3 60080000 		.4byte	0x860
+ 1621 02d7 EB020000 		.4byte	0x2eb
+ 1622 02db 10       		.uleb128 0x10
+ 1623 02dc 01       		.uleb128 0x1
+ 1624 02dd 50       		.byte	0x50
+ 1625 02de 01       		.uleb128 0x1
+ 1626 02df 30       		.byte	0x30
+ 1627 02e0 10       		.uleb128 0x10
+ 1628 02e1 01       		.uleb128 0x1
+ 1629 02e2 51       		.byte	0x51
+ 1630 02e3 01       		.uleb128 0x1
+ 1631 02e4 30       		.byte	0x30
+ 1632 02e5 10       		.uleb128 0x10
+ 1633 02e6 01       		.uleb128 0x1
+ 1634 02e7 52       		.byte	0x52
+ 1635 02e8 01       		.uleb128 0x1
+ 1636 02e9 30       		.byte	0x30
+ 1637 02ea 00       		.byte	0
+ 1638 02eb 11       		.uleb128 0x11
+ 1639 02ec 48000000 		.4byte	.LVL21
+ 1640 02f0 6B080000 		.4byte	0x86b
+ 1641 02f4 00       		.byte	0
+ 1642 02f5 00       		.byte	0
+ 1643 02f6 00       		.byte	0
+ 1644 02f7 14       		.uleb128 0x14
+ 1645 02f8 16030000 		.4byte	.LASF39
+ 1646 02fc 01       		.byte	0x1
+ 1647 02fd E0       		.byte	0xe0
+ 1648 02fe 00000000 		.4byte	.LFB37
+ 1649 0302 80000000 		.4byte	.LFE37-.LFB37
+ 1650 0306 01       		.uleb128 0x1
+ 1651 0307 9C       		.byte	0x9c
+ 1652 0308 9E030000 		.4byte	0x39e
+ 1653 030c 0B       		.uleb128 0xb
+ 1654 030d 7200     		.ascii	"r\000"
+ 1655 030f 01       		.byte	0x1
+ 1656 0310 E0       		.byte	0xe0
+ 1657 0311 8C000000 		.4byte	0x8c
+ 1658 0315 3A020000 		.4byte	.LLST11
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 38
+
+
+ 1659 0319 0B       		.uleb128 0xb
+ 1660 031a 6700     		.ascii	"g\000"
+ 1661 031c 01       		.byte	0x1
+ 1662 031d E0       		.byte	0xe0
+ 1663 031e 8C000000 		.4byte	0x8c
+ 1664 0322 74020000 		.4byte	.LLST12
+ 1665 0326 0B       		.uleb128 0xb
+ 1666 0327 6200     		.ascii	"b\000"
+ 1667 0329 01       		.byte	0x1
+ 1668 032a E0       		.byte	0xe0
+ 1669 032b 8C000000 		.4byte	0x8c
+ 1670 032f AE020000 		.4byte	.LLST13
+ 1671 0333 0C       		.uleb128 0xc
+ 1672 0334 87000000 		.4byte	.LASF36
+ 1673 0338 01       		.byte	0x1
+ 1674 0339 E0       		.byte	0xe0
+ 1675 033a A2000000 		.4byte	0xa2
+ 1676 033e CF020000 		.4byte	.LLST14
+ 1677 0342 0D       		.uleb128 0xd
+ 1678 0343 48000000 		.4byte	.Ldebug_ranges0+0x48
+ 1679 0347 94030000 		.4byte	0x394
+ 1680 034b 0E       		.uleb128 0xe
+ 1681 034c 6900     		.ascii	"i\000"
+ 1682 034e 01       		.byte	0x1
+ 1683 034f E8       		.byte	0xe8
+ 1684 0350 A2000000 		.4byte	0xa2
+ 1685 0354 FB020000 		.4byte	.LLST15
+ 1686 0358 13       		.uleb128 0x13
+ 1687 0359 3E000000 		.4byte	.LVL32
+ 1688 035d 60080000 		.4byte	0x860
+ 1689 0361 7A030000 		.4byte	0x37a
+ 1690 0365 10       		.uleb128 0x10
+ 1691 0366 01       		.uleb128 0x1
+ 1692 0367 50       		.byte	0x50
+ 1693 0368 04       		.uleb128 0x4
+ 1694 0369 91       		.byte	0x91
+ 1695 036a 64       		.sleb128 -28
+ 1696 036b 94       		.byte	0x94
+ 1697 036c 01       		.byte	0x1
+ 1698 036d 10       		.uleb128 0x10
+ 1699 036e 01       		.uleb128 0x1
+ 1700 036f 51       		.byte	0x51
+ 1701 0370 02       		.uleb128 0x2
+ 1702 0371 76       		.byte	0x76
+ 1703 0372 00       		.sleb128 0
+ 1704 0373 10       		.uleb128 0x10
+ 1705 0374 01       		.uleb128 0x1
+ 1706 0375 52       		.byte	0x52
+ 1707 0376 02       		.uleb128 0x2
+ 1708 0377 77       		.byte	0x77
+ 1709 0378 00       		.sleb128 0
+ 1710 0379 00       		.byte	0
+ 1711 037a 0F       		.uleb128 0xf
+ 1712 037b 4A000000 		.4byte	.LVL33
+ 1713 037f 60080000 		.4byte	0x860
+ 1714 0383 10       		.uleb128 0x10
+ 1715 0384 01       		.uleb128 0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 39
+
+
+ 1716 0385 50       		.byte	0x50
+ 1717 0386 01       		.uleb128 0x1
+ 1718 0387 30       		.byte	0x30
+ 1719 0388 10       		.uleb128 0x10
+ 1720 0389 01       		.uleb128 0x1
+ 1721 038a 51       		.byte	0x51
+ 1722 038b 01       		.uleb128 0x1
+ 1723 038c 30       		.byte	0x30
+ 1724 038d 10       		.uleb128 0x10
+ 1725 038e 01       		.uleb128 0x1
+ 1726 038f 52       		.byte	0x52
+ 1727 0390 01       		.uleb128 0x1
+ 1728 0391 30       		.byte	0x30
+ 1729 0392 00       		.byte	0
+ 1730 0393 00       		.byte	0
+ 1731 0394 11       		.uleb128 0x11
+ 1732 0395 58000000 		.4byte	.LVL37
+ 1733 0399 6B080000 		.4byte	0x86b
+ 1734 039d 00       		.byte	0
+ 1735 039e 15       		.uleb128 0x15
+ 1736 039f 7D020000 		.4byte	.LASF40
+ 1737 03a3 01       		.byte	0x1
+ 1738 03a4 0001     		.2byte	0x100
+ 1739 03a6 00000000 		.4byte	.LFB38
+ 1740 03aa BC000000 		.4byte	.LFE38-.LFB38
+ 1741 03ae 01       		.uleb128 0x1
+ 1742 03af 9C       		.byte	0x9c
+ 1743 03b0 BA040000 		.4byte	0x4ba
+ 1744 03b4 16       		.uleb128 0x16
+ 1745 03b5 0C000000 		.4byte	.LASF41
+ 1746 03b9 01       		.byte	0x1
+ 1747 03ba 0001     		.2byte	0x100
+ 1748 03bc A2000000 		.4byte	0xa2
+ 1749 03c0 19030000 		.4byte	.LLST16
+ 1750 03c4 16       		.uleb128 0x16
+ 1751 03c5 13000000 		.4byte	.LASF42
+ 1752 03c9 01       		.byte	0x1
+ 1753 03ca 0001     		.2byte	0x100
+ 1754 03cc 8C000000 		.4byte	0x8c
+ 1755 03d0 3A030000 		.4byte	.LLST17
+ 1756 03d4 16       		.uleb128 0x16
+ 1757 03d5 00030000 		.4byte	.LASF43
+ 1758 03d9 01       		.byte	0x1
+ 1759 03da 0001     		.2byte	0x100
+ 1760 03dc A2000000 		.4byte	0xa2
+ 1761 03e0 5B030000 		.4byte	.LLST18
+ 1762 03e4 16       		.uleb128 0x16
+ 1763 03e5 87000000 		.4byte	.LASF36
+ 1764 03e9 01       		.byte	0x1
+ 1765 03ea 0001     		.2byte	0x100
+ 1766 03ec A2000000 		.4byte	0xa2
+ 1767 03f0 87030000 		.4byte	.LLST19
+ 1768 03f4 17       		.uleb128 0x17
+ 1769 03f5 24000000 		.4byte	.LBB10
+ 1770 03f9 74000000 		.4byte	.LBE10-.LBB10
+ 1771 03fd 18       		.uleb128 0x18
+ 1772 03fe B3020000 		.4byte	.LASF44
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 40
+
+
+ 1773 0402 01       		.byte	0x1
+ 1774 0403 1001     		.2byte	0x110
+ 1775 0405 85000000 		.4byte	0x85
+ 1776 0409 B3030000 		.4byte	.LLST20
+ 1777 040d 19       		.uleb128 0x19
+ 1778 040e 28000000 		.4byte	.LBB11
+ 1779 0412 56000000 		.4byte	.LBE11-.LBB11
+ 1780 0416 AF040000 		.4byte	0x4af
+ 1781 041a 1A       		.uleb128 0x1a
+ 1782 041b 6900     		.ascii	"i\000"
+ 1783 041d 01       		.byte	0x1
+ 1784 041e 1101     		.2byte	0x111
+ 1785 0420 A2000000 		.4byte	0xa2
+ 1786 0424 C6030000 		.4byte	.LLST21
+ 1787 0428 17       		.uleb128 0x17
+ 1788 0429 2C000000 		.4byte	.LBB12
+ 1789 042d 4C000000 		.4byte	.LBE12-.LBB12
+ 1790 0431 18       		.uleb128 0x18
+ 1791 0432 68000000 		.4byte	.LASF45
+ 1792 0436 01       		.byte	0x1
+ 1793 0437 1701     		.2byte	0x117
+ 1794 0439 8C000000 		.4byte	0x8c
+ 1795 043d E5030000 		.4byte	.LLST22
+ 1796 0441 18       		.uleb128 0x18
+ 1797 0442 5B030000 		.4byte	.LASF46
+ 1798 0446 01       		.byte	0x1
+ 1799 0447 1801     		.2byte	0x118
+ 1800 0449 8C000000 		.4byte	0x8c
+ 1801 044d 07040000 		.4byte	.LLST23
+ 1802 0451 13       		.uleb128 0x13
+ 1803 0452 5A000000 		.4byte	.LVL49
+ 1804 0456 60080000 		.4byte	0x860
+ 1805 045a 71040000 		.4byte	0x471
+ 1806 045e 10       		.uleb128 0x10
+ 1807 045f 01       		.uleb128 0x1
+ 1808 0460 50       		.byte	0x50
+ 1809 0461 03       		.uleb128 0x3
+ 1810 0462 77       		.byte	0x77
+ 1811 0463 00       		.sleb128 0
+ 1812 0464 20       		.byte	0x20
+ 1813 0465 10       		.uleb128 0x10
+ 1814 0466 01       		.uleb128 0x1
+ 1815 0467 51       		.byte	0x51
+ 1816 0468 02       		.uleb128 0x2
+ 1817 0469 77       		.byte	0x77
+ 1818 046a 00       		.sleb128 0
+ 1819 046b 10       		.uleb128 0x10
+ 1820 046c 01       		.uleb128 0x1
+ 1821 046d 52       		.byte	0x52
+ 1822 046e 01       		.uleb128 0x1
+ 1823 046f 30       		.byte	0x30
+ 1824 0470 00       		.byte	0
+ 1825 0471 13       		.uleb128 0x13
+ 1826 0472 68000000 		.4byte	.LVL50
+ 1827 0476 60080000 		.4byte	0x860
+ 1828 047a 91040000 		.4byte	0x491
+ 1829 047e 10       		.uleb128 0x10
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 41
+
+
+ 1830 047f 01       		.uleb128 0x1
+ 1831 0480 50       		.byte	0x50
+ 1832 0481 01       		.uleb128 0x1
+ 1833 0482 30       		.byte	0x30
+ 1834 0483 10       		.uleb128 0x10
+ 1835 0484 01       		.uleb128 0x1
+ 1836 0485 51       		.byte	0x51
+ 1837 0486 03       		.uleb128 0x3
+ 1838 0487 77       		.byte	0x77
+ 1839 0488 00       		.sleb128 0
+ 1840 0489 20       		.byte	0x20
+ 1841 048a 10       		.uleb128 0x10
+ 1842 048b 01       		.uleb128 0x1
+ 1843 048c 52       		.byte	0x52
+ 1844 048d 02       		.uleb128 0x2
+ 1845 048e 77       		.byte	0x77
+ 1846 048f 00       		.sleb128 0
+ 1847 0490 00       		.byte	0
+ 1848 0491 0F       		.uleb128 0xf
+ 1849 0492 76000000 		.4byte	.LVL51
+ 1850 0496 60080000 		.4byte	0x860
+ 1851 049a 10       		.uleb128 0x10
+ 1852 049b 01       		.uleb128 0x1
+ 1853 049c 50       		.byte	0x50
+ 1854 049d 02       		.uleb128 0x2
+ 1855 049e 77       		.byte	0x77
+ 1856 049f 00       		.sleb128 0
+ 1857 04a0 10       		.uleb128 0x10
+ 1858 04a1 01       		.uleb128 0x1
+ 1859 04a2 51       		.byte	0x51
+ 1860 04a3 01       		.uleb128 0x1
+ 1861 04a4 30       		.byte	0x30
+ 1862 04a5 10       		.uleb128 0x10
+ 1863 04a6 01       		.uleb128 0x1
+ 1864 04a7 52       		.byte	0x52
+ 1865 04a8 03       		.uleb128 0x3
+ 1866 04a9 77       		.byte	0x77
+ 1867 04aa 00       		.sleb128 0
+ 1868 04ab 20       		.byte	0x20
+ 1869 04ac 00       		.byte	0
+ 1870 04ad 00       		.byte	0
+ 1871 04ae 00       		.byte	0
+ 1872 04af 11       		.uleb128 0x11
+ 1873 04b0 82000000 		.4byte	.LVL54
+ 1874 04b4 6B080000 		.4byte	0x86b
+ 1875 04b8 00       		.byte	0
+ 1876 04b9 00       		.byte	0
+ 1877 04ba 1B       		.uleb128 0x1b
+ 1878 04bb 5F020000 		.4byte	.LASF47
+ 1879 04bf 01       		.byte	0x1
+ 1880 04c0 3701     		.2byte	0x137
+ 1881 04c2 00000000 		.4byte	.LFB39
+ 1882 04c6 34010000 		.4byte	.LFE39-.LFB39
+ 1883 04ca 01       		.uleb128 0x1
+ 1884 04cb 9C       		.byte	0x9c
+ 1885 04cc AE050000 		.4byte	0x5ae
+ 1886 04d0 1C       		.uleb128 0x1c
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 42
+
+
+ 1887 04d1 7200     		.ascii	"r\000"
+ 1888 04d3 01       		.byte	0x1
+ 1889 04d4 3701     		.2byte	0x137
+ 1890 04d6 8C000000 		.4byte	0x8c
+ 1891 04da 1A040000 		.4byte	.LLST24
+ 1892 04de 1C       		.uleb128 0x1c
+ 1893 04df 6700     		.ascii	"g\000"
+ 1894 04e1 01       		.byte	0x1
+ 1895 04e2 3701     		.2byte	0x137
+ 1896 04e4 8C000000 		.4byte	0x8c
+ 1897 04e8 54040000 		.4byte	.LLST25
+ 1898 04ec 1C       		.uleb128 0x1c
+ 1899 04ed 6200     		.ascii	"b\000"
+ 1900 04ef 01       		.byte	0x1
+ 1901 04f0 3701     		.2byte	0x137
+ 1902 04f2 8C000000 		.4byte	0x8c
+ 1903 04f6 75040000 		.4byte	.LLST26
+ 1904 04fa 16       		.uleb128 0x16
+ 1905 04fb 87000000 		.4byte	.LASF36
+ 1906 04ff 01       		.byte	0x1
+ 1907 0500 3701     		.2byte	0x137
+ 1908 0502 A2000000 		.4byte	0xa2
+ 1909 0506 96040000 		.4byte	.LLST27
+ 1910 050a 13       		.uleb128 0x13
+ 1911 050b 34000000 		.4byte	.LVL62
+ 1912 050f B3010000 		.4byte	0x1b3
+ 1913 0513 31050000 		.4byte	0x531
+ 1914 0517 10       		.uleb128 0x10
+ 1915 0518 01       		.uleb128 0x1
+ 1916 0519 50       		.byte	0x50
+ 1917 051a 04       		.uleb128 0x4
+ 1918 051b 91       		.byte	0x91
+ 1919 051c 64       		.sleb128 -28
+ 1920 051d 94       		.byte	0x94
+ 1921 051e 01       		.byte	0x1
+ 1922 051f 10       		.uleb128 0x10
+ 1923 0520 01       		.uleb128 0x1
+ 1924 0521 51       		.byte	0x51
+ 1925 0522 02       		.uleb128 0x2
+ 1926 0523 75       		.byte	0x75
+ 1927 0524 00       		.sleb128 0
+ 1928 0525 10       		.uleb128 0x10
+ 1929 0526 01       		.uleb128 0x1
+ 1930 0527 52       		.byte	0x52
+ 1931 0528 02       		.uleb128 0x2
+ 1932 0529 77       		.byte	0x77
+ 1933 052a 00       		.sleb128 0
+ 1934 052b 10       		.uleb128 0x10
+ 1935 052c 01       		.uleb128 0x1
+ 1936 052d 53       		.byte	0x53
+ 1937 052e 01       		.uleb128 0x1
+ 1938 052f 30       		.byte	0x30
+ 1939 0530 00       		.byte	0
+ 1940 0531 13       		.uleb128 0x13
+ 1941 0532 48000000 		.4byte	.LVL65
+ 1942 0536 B3010000 		.4byte	0x1b3
+ 1943 053a 53050000 		.4byte	0x553
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 43
+
+
+ 1944 053e 10       		.uleb128 0x10
+ 1945 053f 01       		.uleb128 0x1
+ 1946 0540 50       		.byte	0x50
+ 1947 0541 01       		.uleb128 0x1
+ 1948 0542 30       		.byte	0x30
+ 1949 0543 10       		.uleb128 0x10
+ 1950 0544 01       		.uleb128 0x1
+ 1951 0545 51       		.byte	0x51
+ 1952 0546 01       		.uleb128 0x1
+ 1953 0547 30       		.byte	0x30
+ 1954 0548 10       		.uleb128 0x10
+ 1955 0549 01       		.uleb128 0x1
+ 1956 054a 52       		.byte	0x52
+ 1957 054b 01       		.uleb128 0x1
+ 1958 054c 30       		.byte	0x30
+ 1959 054d 10       		.uleb128 0x10
+ 1960 054e 01       		.uleb128 0x1
+ 1961 054f 53       		.byte	0x53
+ 1962 0550 01       		.uleb128 0x1
+ 1963 0551 30       		.byte	0x30
+ 1964 0552 00       		.byte	0
+ 1965 0553 13       		.uleb128 0x13
+ 1966 0554 76000000 		.4byte	.LVL69
+ 1967 0558 B3010000 		.4byte	0x1b3
+ 1968 055c 75050000 		.4byte	0x575
+ 1969 0560 10       		.uleb128 0x10
+ 1970 0561 01       		.uleb128 0x1
+ 1971 0562 50       		.byte	0x50
+ 1972 0563 01       		.uleb128 0x1
+ 1973 0564 30       		.byte	0x30
+ 1974 0565 10       		.uleb128 0x10
+ 1975 0566 01       		.uleb128 0x1
+ 1976 0567 51       		.byte	0x51
+ 1977 0568 01       		.uleb128 0x1
+ 1978 0569 30       		.byte	0x30
+ 1979 056a 10       		.uleb128 0x10
+ 1980 056b 01       		.uleb128 0x1
+ 1981 056c 52       		.byte	0x52
+ 1982 056d 01       		.uleb128 0x1
+ 1983 056e 30       		.byte	0x30
+ 1984 056f 10       		.uleb128 0x10
+ 1985 0570 01       		.uleb128 0x1
+ 1986 0571 53       		.byte	0x53
+ 1987 0572 01       		.uleb128 0x1
+ 1988 0573 30       		.byte	0x30
+ 1989 0574 00       		.byte	0
+ 1990 0575 13       		.uleb128 0x13
+ 1991 0576 E0000000 		.4byte	.LVL70
+ 1992 057a B3010000 		.4byte	0x1b3
+ 1993 057e 94050000 		.4byte	0x594
+ 1994 0582 10       		.uleb128 0x10
+ 1995 0583 01       		.uleb128 0x1
+ 1996 0584 50       		.byte	0x50
+ 1997 0585 02       		.uleb128 0x2
+ 1998 0586 74       		.byte	0x74
+ 1999 0587 00       		.sleb128 0
+ 2000 0588 10       		.uleb128 0x10
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 44
+
+
+ 2001 0589 01       		.uleb128 0x1
+ 2002 058a 51       		.byte	0x51
+ 2003 058b 02       		.uleb128 0x2
+ 2004 058c 75       		.byte	0x75
+ 2005 058d 00       		.sleb128 0
+ 2006 058e 10       		.uleb128 0x10
+ 2007 058f 01       		.uleb128 0x1
+ 2008 0590 53       		.byte	0x53
+ 2009 0591 01       		.uleb128 0x1
+ 2010 0592 30       		.byte	0x30
+ 2011 0593 00       		.byte	0
+ 2012 0594 0F       		.uleb128 0xf
+ 2013 0595 0A010000 		.4byte	.LVL72
+ 2014 0599 B3010000 		.4byte	0x1b3
+ 2015 059d 10       		.uleb128 0x10
+ 2016 059e 01       		.uleb128 0x1
+ 2017 059f 50       		.byte	0x50
+ 2018 05a0 01       		.uleb128 0x1
+ 2019 05a1 30       		.byte	0x30
+ 2020 05a2 10       		.uleb128 0x10
+ 2021 05a3 01       		.uleb128 0x1
+ 2022 05a4 51       		.byte	0x51
+ 2023 05a5 01       		.uleb128 0x1
+ 2024 05a6 30       		.byte	0x30
+ 2025 05a7 10       		.uleb128 0x10
+ 2026 05a8 01       		.uleb128 0x1
+ 2027 05a9 52       		.byte	0x52
+ 2028 05aa 01       		.uleb128 0x1
+ 2029 05ab 30       		.byte	0x30
+ 2030 05ac 00       		.byte	0
+ 2031 05ad 00       		.byte	0
+ 2032 05ae 0A       		.uleb128 0xa
+ 2033 05af A1020000 		.4byte	.LASF48
+ 2034 05b3 01       		.byte	0x1
+ 2035 05b4 1F       		.byte	0x1f
+ 2036 05b5 00000000 		.4byte	.LFB33
+ 2037 05b9 F8010000 		.4byte	.LFE33-.LFB33
+ 2038 05bd 01       		.uleb128 0x1
+ 2039 05be 9C       		.byte	0x9c
+ 2040 05bf 58070000 		.4byte	0x758
+ 2041 05c3 13       		.uleb128 0x13
+ 2042 05c4 40000000 		.4byte	.LVL74
+ 2043 05c8 B3010000 		.4byte	0x1b3
+ 2044 05cc E6050000 		.4byte	0x5e6
+ 2045 05d0 10       		.uleb128 0x10
+ 2046 05d1 01       		.uleb128 0x1
+ 2047 05d2 50       		.byte	0x50
+ 2048 05d3 01       		.uleb128 0x1
+ 2049 05d4 30       		.byte	0x30
+ 2050 05d5 10       		.uleb128 0x10
+ 2051 05d6 01       		.uleb128 0x1
+ 2052 05d7 51       		.byte	0x51
+ 2053 05d8 01       		.uleb128 0x1
+ 2054 05d9 30       		.byte	0x30
+ 2055 05da 10       		.uleb128 0x10
+ 2056 05db 01       		.uleb128 0x1
+ 2057 05dc 52       		.byte	0x52
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 45
+
+
+ 2058 05dd 01       		.uleb128 0x1
+ 2059 05de 30       		.byte	0x30
+ 2060 05df 10       		.uleb128 0x10
+ 2061 05e0 01       		.uleb128 0x1
+ 2062 05e1 53       		.byte	0x53
+ 2063 05e2 02       		.uleb128 0x2
+ 2064 05e3 08       		.byte	0x8
+ 2065 05e4 64       		.byte	0x64
+ 2066 05e5 00       		.byte	0
+ 2067 05e6 13       		.uleb128 0x13
+ 2068 05e7 5A000000 		.4byte	.LVL75
+ 2069 05eb B3010000 		.4byte	0x1b3
+ 2070 05ef F9050000 		.4byte	0x5f9
+ 2071 05f3 10       		.uleb128 0x10
+ 2072 05f4 01       		.uleb128 0x1
+ 2073 05f5 53       		.byte	0x53
+ 2074 05f6 01       		.uleb128 0x1
+ 2075 05f7 30       		.byte	0x30
+ 2076 05f8 00       		.byte	0
+ 2077 05f9 11       		.uleb128 0x11
+ 2078 05fa CE000000 		.4byte	.LVL76
+ 2079 05fe 76080000 		.4byte	0x876
+ 2080 0602 13       		.uleb128 0x13
+ 2081 0603 DA000000 		.4byte	.LVL77
+ 2082 0607 81080000 		.4byte	0x881
+ 2083 060b 15060000 		.4byte	0x615
+ 2084 060f 10       		.uleb128 0x10
+ 2085 0610 01       		.uleb128 0x1
+ 2086 0611 50       		.byte	0x50
+ 2087 0612 01       		.uleb128 0x1
+ 2088 0613 30       		.byte	0x30
+ 2089 0614 00       		.byte	0
+ 2090 0615 13       		.uleb128 0x13
+ 2091 0616 F6000000 		.4byte	.LVL78
+ 2092 061a B3010000 		.4byte	0x1b3
+ 2093 061e 38060000 		.4byte	0x638
+ 2094 0622 10       		.uleb128 0x10
+ 2095 0623 01       		.uleb128 0x1
+ 2096 0624 50       		.byte	0x50
+ 2097 0625 01       		.uleb128 0x1
+ 2098 0626 30       		.byte	0x30
+ 2099 0627 10       		.uleb128 0x10
+ 2100 0628 01       		.uleb128 0x1
+ 2101 0629 51       		.byte	0x51
+ 2102 062a 01       		.uleb128 0x1
+ 2103 062b 30       		.byte	0x30
+ 2104 062c 10       		.uleb128 0x10
+ 2105 062d 01       		.uleb128 0x1
+ 2106 062e 52       		.byte	0x52
+ 2107 062f 01       		.uleb128 0x1
+ 2108 0630 30       		.byte	0x30
+ 2109 0631 10       		.uleb128 0x10
+ 2110 0632 01       		.uleb128 0x1
+ 2111 0633 53       		.byte	0x53
+ 2112 0634 02       		.uleb128 0x2
+ 2113 0635 08       		.byte	0x8
+ 2114 0636 64       		.byte	0x64
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 46
+
+
+ 2115 0637 00       		.byte	0
+ 2116 0638 11       		.uleb128 0x11
+ 2117 0639 0A010000 		.4byte	.LVL79
+ 2118 063d 76080000 		.4byte	0x876
+ 2119 0641 11       		.uleb128 0x11
+ 2120 0642 26010000 		.4byte	.LVL80
+ 2121 0646 8C080000 		.4byte	0x88c
+ 2122 064a 13       		.uleb128 0x13
+ 2123 064b 4E010000 		.4byte	.LVL81
+ 2124 064f F7020000 		.4byte	0x2f7
+ 2125 0653 6A060000 		.4byte	0x66a
+ 2126 0657 10       		.uleb128 0x10
+ 2127 0658 01       		.uleb128 0x1
+ 2128 0659 50       		.byte	0x50
+ 2129 065a 02       		.uleb128 0x2
+ 2130 065b 08       		.byte	0x8
+ 2131 065c 7F       		.byte	0x7f
+ 2132 065d 10       		.uleb128 0x10
+ 2133 065e 01       		.uleb128 0x1
+ 2134 065f 51       		.byte	0x51
+ 2135 0660 02       		.uleb128 0x2
+ 2136 0661 08       		.byte	0x8
+ 2137 0662 7F       		.byte	0x7f
+ 2138 0663 10       		.uleb128 0x10
+ 2139 0664 01       		.uleb128 0x1
+ 2140 0665 52       		.byte	0x52
+ 2141 0666 02       		.uleb128 0x2
+ 2142 0667 08       		.byte	0x8
+ 2143 0668 7F       		.byte	0x7f
+ 2144 0669 00       		.byte	0
+ 2145 066a 13       		.uleb128 0x13
+ 2146 066b 5C010000 		.4byte	.LVL82
+ 2147 066f F7020000 		.4byte	0x2f7
+ 2148 0673 8E060000 		.4byte	0x68e
+ 2149 0677 10       		.uleb128 0x10
+ 2150 0678 01       		.uleb128 0x1
+ 2151 0679 50       		.byte	0x50
+ 2152 067a 02       		.uleb128 0x2
+ 2153 067b 08       		.byte	0x8
+ 2154 067c 7F       		.byte	0x7f
+ 2155 067d 10       		.uleb128 0x10
+ 2156 067e 01       		.uleb128 0x1
+ 2157 067f 51       		.byte	0x51
+ 2158 0680 01       		.uleb128 0x1
+ 2159 0681 30       		.byte	0x30
+ 2160 0682 10       		.uleb128 0x10
+ 2161 0683 01       		.uleb128 0x1
+ 2162 0684 52       		.byte	0x52
+ 2163 0685 01       		.uleb128 0x1
+ 2164 0686 30       		.byte	0x30
+ 2165 0687 10       		.uleb128 0x10
+ 2166 0688 01       		.uleb128 0x1
+ 2167 0689 53       		.byte	0x53
+ 2168 068a 02       		.uleb128 0x2
+ 2169 068b 08       		.byte	0x8
+ 2170 068c FA       		.byte	0xfa
+ 2171 068d 00       		.byte	0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 47
+
+
+ 2172 068e 13       		.uleb128 0x13
+ 2173 068f 6A010000 		.4byte	.LVL83
+ 2174 0693 F7020000 		.4byte	0x2f7
+ 2175 0697 B2060000 		.4byte	0x6b2
+ 2176 069b 10       		.uleb128 0x10
+ 2177 069c 01       		.uleb128 0x1
+ 2178 069d 50       		.byte	0x50
+ 2179 069e 01       		.uleb128 0x1
+ 2180 069f 30       		.byte	0x30
+ 2181 06a0 10       		.uleb128 0x10
+ 2182 06a1 01       		.uleb128 0x1
+ 2183 06a2 51       		.byte	0x51
+ 2184 06a3 01       		.uleb128 0x1
+ 2185 06a4 30       		.byte	0x30
+ 2186 06a5 10       		.uleb128 0x10
+ 2187 06a6 01       		.uleb128 0x1
+ 2188 06a7 52       		.byte	0x52
+ 2189 06a8 02       		.uleb128 0x2
+ 2190 06a9 08       		.byte	0x8
+ 2191 06aa 7F       		.byte	0x7f
+ 2192 06ab 10       		.uleb128 0x10
+ 2193 06ac 01       		.uleb128 0x1
+ 2194 06ad 53       		.byte	0x53
+ 2195 06ae 02       		.uleb128 0x2
+ 2196 06af 08       		.byte	0x8
+ 2197 06b0 64       		.byte	0x64
+ 2198 06b1 00       		.byte	0
+ 2199 06b2 13       		.uleb128 0x13
+ 2200 06b3 80010000 		.4byte	.LVL84
+ 2201 06b7 B3010000 		.4byte	0x1b3
+ 2202 06bb D5060000 		.4byte	0x6d5
+ 2203 06bf 10       		.uleb128 0x10
+ 2204 06c0 01       		.uleb128 0x1
+ 2205 06c1 50       		.byte	0x50
+ 2206 06c2 01       		.uleb128 0x1
+ 2207 06c3 30       		.byte	0x30
+ 2208 06c4 10       		.uleb128 0x10
+ 2209 06c5 01       		.uleb128 0x1
+ 2210 06c6 51       		.byte	0x51
+ 2211 06c7 01       		.uleb128 0x1
+ 2212 06c8 30       		.byte	0x30
+ 2213 06c9 10       		.uleb128 0x10
+ 2214 06ca 01       		.uleb128 0x1
+ 2215 06cb 52       		.byte	0x52
+ 2216 06cc 01       		.uleb128 0x1
+ 2217 06cd 30       		.byte	0x30
+ 2218 06ce 10       		.uleb128 0x10
+ 2219 06cf 01       		.uleb128 0x1
+ 2220 06d0 53       		.byte	0x53
+ 2221 06d1 02       		.uleb128 0x2
+ 2222 06d2 08       		.byte	0x8
+ 2223 06d3 64       		.byte	0x64
+ 2224 06d4 00       		.byte	0
+ 2225 06d5 13       		.uleb128 0x13
+ 2226 06d6 96010000 		.4byte	.LVL85
+ 2227 06da 9E030000 		.4byte	0x39e
+ 2228 06de FB060000 		.4byte	0x6fb
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 48
+
+
+ 2229 06e2 10       		.uleb128 0x10
+ 2230 06e3 01       		.uleb128 0x1
+ 2231 06e4 50       		.byte	0x50
+ 2232 06e5 03       		.uleb128 0x3
+ 2233 06e6 0A       		.byte	0xa
+ 2234 06e7 E803     		.2byte	0x3e8
+ 2235 06e9 10       		.uleb128 0x10
+ 2236 06ea 01       		.uleb128 0x1
+ 2237 06eb 51       		.byte	0x51
+ 2238 06ec 01       		.uleb128 0x1
+ 2239 06ed 44       		.byte	0x44
+ 2240 06ee 10       		.uleb128 0x10
+ 2241 06ef 01       		.uleb128 0x1
+ 2242 06f0 52       		.byte	0x52
+ 2243 06f1 01       		.uleb128 0x1
+ 2244 06f2 35       		.byte	0x35
+ 2245 06f3 10       		.uleb128 0x10
+ 2246 06f4 01       		.uleb128 0x1
+ 2247 06f5 53       		.byte	0x53
+ 2248 06f6 03       		.uleb128 0x3
+ 2249 06f7 0A       		.byte	0xa
+ 2250 06f8 F401     		.2byte	0x1f4
+ 2251 06fa 00       		.byte	0
+ 2252 06fb 11       		.uleb128 0x11
+ 2253 06fc 9A010000 		.4byte	.LVL86
+ 2254 0700 76080000 		.4byte	0x876
+ 2255 0704 13       		.uleb128 0x13
+ 2256 0705 BA010000 		.4byte	.LVL87
+ 2257 0709 B3010000 		.4byte	0x1b3
+ 2258 070d 27070000 		.4byte	0x727
+ 2259 0711 10       		.uleb128 0x10
+ 2260 0712 01       		.uleb128 0x1
+ 2261 0713 50       		.byte	0x50
+ 2262 0714 01       		.uleb128 0x1
+ 2263 0715 30       		.byte	0x30
+ 2264 0716 10       		.uleb128 0x10
+ 2265 0717 01       		.uleb128 0x1
+ 2266 0718 51       		.byte	0x51
+ 2267 0719 01       		.uleb128 0x1
+ 2268 071a 30       		.byte	0x30
+ 2269 071b 10       		.uleb128 0x10
+ 2270 071c 01       		.uleb128 0x1
+ 2271 071d 52       		.byte	0x52
+ 2272 071e 01       		.uleb128 0x1
+ 2273 071f 30       		.byte	0x30
+ 2274 0720 10       		.uleb128 0x10
+ 2275 0721 01       		.uleb128 0x1
+ 2276 0722 53       		.byte	0x53
+ 2277 0723 02       		.uleb128 0x2
+ 2278 0724 08       		.byte	0x8
+ 2279 0725 64       		.byte	0x64
+ 2280 0726 00       		.byte	0
+ 2281 0727 13       		.uleb128 0x13
+ 2282 0728 DC010000 		.4byte	.LVL88
+ 2283 072c BA040000 		.4byte	0x4ba
+ 2284 0730 4E070000 		.4byte	0x74e
+ 2285 0734 10       		.uleb128 0x10
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 49
+
+
+ 2286 0735 01       		.uleb128 0x1
+ 2287 0736 50       		.byte	0x50
+ 2288 0737 02       		.uleb128 0x2
+ 2289 0738 09       		.byte	0x9
+ 2290 0739 FF       		.byte	0xff
+ 2291 073a 10       		.uleb128 0x10
+ 2292 073b 01       		.uleb128 0x1
+ 2293 073c 51       		.byte	0x51
+ 2294 073d 02       		.uleb128 0x2
+ 2295 073e 09       		.byte	0x9
+ 2296 073f FF       		.byte	0xff
+ 2297 0740 10       		.uleb128 0x10
+ 2298 0741 01       		.uleb128 0x1
+ 2299 0742 52       		.byte	0x52
+ 2300 0743 02       		.uleb128 0x2
+ 2301 0744 09       		.byte	0x9
+ 2302 0745 FF       		.byte	0xff
+ 2303 0746 10       		.uleb128 0x10
+ 2304 0747 01       		.uleb128 0x1
+ 2305 0748 53       		.byte	0x53
+ 2306 0749 03       		.uleb128 0x3
+ 2307 074a 0A       		.byte	0xa
+ 2308 074b E803     		.2byte	0x3e8
+ 2309 074d 00       		.byte	0
+ 2310 074e 11       		.uleb128 0x11
+ 2311 074f E0010000 		.4byte	.LVL89
+ 2312 0753 76080000 		.4byte	0x876
+ 2313 0757 00       		.byte	0
+ 2314 0758 1D       		.uleb128 0x1d
+ 2315 0759 63000000 		.4byte	.LASF67
+ 2316 075d 01       		.byte	0x1
+ 2317 075e 99       		.byte	0x99
+ 2318 075f 7E000000 		.4byte	0x7e
+ 2319 0763 00000000 		.4byte	.LFB34
+ 2320 0767 3C000000 		.4byte	.LFE34-.LFB34
+ 2321 076b 01       		.uleb128 0x1
+ 2322 076c 9C       		.byte	0x9c
+ 2323 076d AE070000 		.4byte	0x7ae
+ 2324 0771 1E       		.uleb128 0x1e
+ 2325 0772 07020000 		.4byte	.LASF49
+ 2326 0776 01       		.byte	0x1
+ 2327 0777 9E       		.byte	0x9e
+ 2328 0778 A2000000 		.4byte	0xa2
+ 2329 077c C2040000 		.4byte	.LLST28
+ 2330 0780 11       		.uleb128 0x11
+ 2331 0781 12000000 		.4byte	.LVL91
+ 2332 0785 97080000 		.4byte	0x897
+ 2333 0789 11       		.uleb128 0x11
+ 2334 078a 18000000 		.4byte	.LVL93
+ 2335 078e A2080000 		.4byte	0x8a2
+ 2336 0792 11       		.uleb128 0x11
+ 2337 0793 1C000000 		.4byte	.LVL94
+ 2338 0797 AE050000 		.4byte	0x5ae
+ 2339 079b 11       		.uleb128 0x11
+ 2340 079c 28000000 		.4byte	.LVL95
+ 2341 07a0 AD080000 		.4byte	0x8ad
+ 2342 07a4 11       		.uleb128 0x11
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 50
+
+
+ 2343 07a5 32000000 		.4byte	.LVL96
+ 2344 07a9 81080000 		.4byte	0x881
+ 2345 07ad 00       		.byte	0
+ 2346 07ae 1F       		.uleb128 0x1f
+ 2347 07af 67010000 		.4byte	.LASF50
+ 2348 07b3 01       		.byte	0x1
+ 2349 07b4 13       		.byte	0x13
+ 2350 07b5 A8010000 		.4byte	0x1a8
+ 2351 07b9 20       		.uleb128 0x20
+ 2352 07ba 8C000000 		.4byte	0x8c
+ 2353 07be C9070000 		.4byte	0x7c9
+ 2354 07c2 21       		.uleb128 0x21
+ 2355 07c3 C9000000 		.4byte	0xc9
+ 2356 07c7 02       		.byte	0x2
+ 2357 07c8 00       		.byte	0
+ 2358 07c9 22       		.uleb128 0x22
+ 2359 07ca 72676200 		.ascii	"rgb\000"
+ 2360 07ce 01       		.byte	0x1
+ 2361 07cf 15       		.byte	0x15
+ 2362 07d0 B9070000 		.4byte	0x7b9
+ 2363 07d4 05       		.uleb128 0x5
+ 2364 07d5 03       		.byte	0x3
+ 2365 07d6 00000000 		.4byte	rgb
+ 2366 07da 22       		.uleb128 0x22
+ 2367 07db 696E6400 		.ascii	"ind\000"
+ 2368 07df 01       		.byte	0x1
+ 2369 07e0 16       		.byte	0x16
+ 2370 07e1 8C000000 		.4byte	0x8c
+ 2371 07e5 05       		.uleb128 0x5
+ 2372 07e6 03       		.byte	0x3
+ 2373 07e7 00000000 		.4byte	ind
+ 2374 07eb 23       		.uleb128 0x23
+ 2375 07ec 20000000 		.4byte	.LASF33
+ 2376 07f0 01       		.byte	0x1
+ 2377 07f1 16       		.byte	0x16
+ 2378 07f2 8C000000 		.4byte	0x8c
+ 2379 07f6 05       		.uleb128 0x5
+ 2380 07f7 03       		.byte	0x3
+ 2381 07f8 00000000 		.4byte	state
+ 2382 07fc 23       		.uleb128 0x23
+ 2383 07fd 43020000 		.4byte	.LASF51
+ 2384 0801 01       		.byte	0x1
+ 2385 0802 17       		.byte	0x17
+ 2386 0803 A2000000 		.4byte	0xa2
+ 2387 0807 05       		.uleb128 0x5
+ 2388 0808 03       		.byte	0x3
+ 2389 0809 00000000 		.4byte	delaytmr
+ 2390 080d 23       		.uleb128 0x23
+ 2391 080e EA010000 		.4byte	.LASF52
+ 2392 0812 01       		.byte	0x1
+ 2393 0813 18       		.byte	0x18
+ 2394 0814 A2000000 		.4byte	0xa2
+ 2395 0818 05       		.uleb128 0x5
+ 2396 0819 03       		.byte	0x3
+ 2397 081a 00000000 		.4byte	counter
+ 2398 081e 23       		.uleb128 0x23
+ 2399 081f D5010000 		.4byte	.LASF53
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 51
+
+
+ 2400 0823 01       		.byte	0x1
+ 2401 0824 18       		.byte	0x18
+ 2402 0825 A2000000 		.4byte	0xa2
+ 2403 0829 05       		.uleb128 0x5
+ 2404 082a 03       		.byte	0x3
+ 2405 082b 00000000 		.4byte	statetmr
+ 2406 082f 23       		.uleb128 0x23
+ 2407 0830 60030000 		.4byte	.LASF54
+ 2408 0834 01       		.byte	0x1
+ 2409 0835 18       		.byte	0x18
+ 2410 0836 A2000000 		.4byte	0xa2
+ 2411 083a 05       		.uleb128 0x5
+ 2412 083b 03       		.byte	0x3
+ 2413 083c 00000000 		.4byte	fade
+ 2414 0840 22       		.uleb128 0x22
+ 2415 0841 7100     		.ascii	"q\000"
+ 2416 0843 01       		.byte	0x1
+ 2417 0844 DF       		.byte	0xdf
+ 2418 0845 A2000000 		.4byte	0xa2
+ 2419 0849 05       		.uleb128 0x5
+ 2420 084a 03       		.byte	0x3
+ 2421 084b 00000000 		.4byte	q
+ 2422 084f 23       		.uleb128 0x23
+ 2423 0850 55000000 		.4byte	.LASF55
+ 2424 0854 01       		.byte	0x1
+ 2425 0855 FE       		.byte	0xfe
+ 2426 0856 A2000000 		.4byte	0xa2
+ 2427 085a 05       		.uleb128 0x5
+ 2428 085b 03       		.byte	0x3
+ 2429 085c 00000000 		.4byte	firstPixelHue
+ 2430 0860 24       		.uleb128 0x24
+ 2431 0861 CA020000 		.4byte	.LASF56
+ 2432 0865 CA020000 		.4byte	.LASF56
+ 2433 0869 05       		.byte	0x5
+ 2434 086a 1A       		.byte	0x1a
+ 2435 086b 24       		.uleb128 0x24
+ 2436 086c 26000000 		.4byte	.LASF57
+ 2437 0870 26000000 		.4byte	.LASF57
+ 2438 0874 05       		.byte	0x5
+ 2439 0875 1B       		.byte	0x1b
+ 2440 0876 24       		.uleb128 0x24
+ 2441 0877 8A020000 		.4byte	.LASF58
+ 2442 087b 8A020000 		.4byte	.LASF58
+ 2443 087f 04       		.byte	0x4
+ 2444 0880 32       		.byte	0x32
+ 2445 0881 24       		.uleb128 0x24
+ 2446 0882 F2010000 		.4byte	.LASF59
+ 2447 0886 F2010000 		.4byte	.LASF59
+ 2448 088a 06       		.byte	0x6
+ 2449 088b 33       		.byte	0x33
+ 2450 088c 24       		.uleb128 0x24
+ 2451 088d 00000000 		.4byte	.LASF60
+ 2452 0891 00000000 		.4byte	.LASF60
+ 2453 0895 04       		.byte	0x4
+ 2454 0896 33       		.byte	0x33
+ 2455 0897 24       		.uleb128 0x24
+ 2456 0898 35030000 		.4byte	.LASF61
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 52
+
+
+ 2457 089c 35030000 		.4byte	.LASF61
+ 2458 08a0 05       		.byte	0x5
+ 2459 08a1 0C       		.byte	0xc
+ 2460 08a2 24       		.uleb128 0x24
+ 2461 08a3 8D000000 		.4byte	.LASF62
+ 2462 08a7 8D000000 		.4byte	.LASF62
+ 2463 08ab 04       		.byte	0x4
+ 2464 08ac 34       		.byte	0x34
+ 2465 08ad 24       		.uleb128 0x24
+ 2466 08ae 23030000 		.4byte	.LASF63
+ 2467 08b2 23030000 		.4byte	.LASF63
+ 2468 08b6 06       		.byte	0x6
+ 2469 08b7 32       		.byte	0x32
+ 2470 08b8 00       		.byte	0
+ 2471              		.section	.debug_abbrev,"",%progbits
+ 2472              	.Ldebug_abbrev0:
+ 2473 0000 01       		.uleb128 0x1
+ 2474 0001 11       		.uleb128 0x11
+ 2475 0002 01       		.byte	0x1
+ 2476 0003 25       		.uleb128 0x25
+ 2477 0004 0E       		.uleb128 0xe
+ 2478 0005 13       		.uleb128 0x13
+ 2479 0006 0B       		.uleb128 0xb
+ 2480 0007 03       		.uleb128 0x3
+ 2481 0008 0E       		.uleb128 0xe
+ 2482 0009 1B       		.uleb128 0x1b
+ 2483 000a 0E       		.uleb128 0xe
+ 2484 000b 55       		.uleb128 0x55
+ 2485 000c 17       		.uleb128 0x17
+ 2486 000d 11       		.uleb128 0x11
+ 2487 000e 01       		.uleb128 0x1
+ 2488 000f 10       		.uleb128 0x10
+ 2489 0010 17       		.uleb128 0x17
+ 2490 0011 00       		.byte	0
+ 2491 0012 00       		.byte	0
+ 2492 0013 02       		.uleb128 0x2
+ 2493 0014 24       		.uleb128 0x24
+ 2494 0015 00       		.byte	0
+ 2495 0016 0B       		.uleb128 0xb
+ 2496 0017 0B       		.uleb128 0xb
+ 2497 0018 3E       		.uleb128 0x3e
+ 2498 0019 0B       		.uleb128 0xb
+ 2499 001a 03       		.uleb128 0x3
+ 2500 001b 0E       		.uleb128 0xe
+ 2501 001c 00       		.byte	0
+ 2502 001d 00       		.byte	0
+ 2503 001e 03       		.uleb128 0x3
+ 2504 001f 16       		.uleb128 0x16
+ 2505 0020 00       		.byte	0
+ 2506 0021 03       		.uleb128 0x3
+ 2507 0022 0E       		.uleb128 0xe
+ 2508 0023 3A       		.uleb128 0x3a
+ 2509 0024 0B       		.uleb128 0xb
+ 2510 0025 3B       		.uleb128 0x3b
+ 2511 0026 0B       		.uleb128 0xb
+ 2512 0027 49       		.uleb128 0x49
+ 2513 0028 13       		.uleb128 0x13
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 53
+
+
+ 2514 0029 00       		.byte	0
+ 2515 002a 00       		.byte	0
+ 2516 002b 04       		.uleb128 0x4
+ 2517 002c 24       		.uleb128 0x24
+ 2518 002d 00       		.byte	0
+ 2519 002e 0B       		.uleb128 0xb
+ 2520 002f 0B       		.uleb128 0xb
+ 2521 0030 3E       		.uleb128 0x3e
+ 2522 0031 0B       		.uleb128 0xb
+ 2523 0032 03       		.uleb128 0x3
+ 2524 0033 08       		.uleb128 0x8
+ 2525 0034 00       		.byte	0
+ 2526 0035 00       		.byte	0
+ 2527 0036 05       		.uleb128 0x5
+ 2528 0037 13       		.uleb128 0x13
+ 2529 0038 01       		.byte	0x1
+ 2530 0039 03       		.uleb128 0x3
+ 2531 003a 0E       		.uleb128 0xe
+ 2532 003b 0B       		.uleb128 0xb
+ 2533 003c 0B       		.uleb128 0xb
+ 2534 003d 3A       		.uleb128 0x3a
+ 2535 003e 0B       		.uleb128 0xb
+ 2536 003f 3B       		.uleb128 0x3b
+ 2537 0040 0B       		.uleb128 0xb
+ 2538 0041 01       		.uleb128 0x1
+ 2539 0042 13       		.uleb128 0x13
+ 2540 0043 00       		.byte	0
+ 2541 0044 00       		.byte	0
+ 2542 0045 06       		.uleb128 0x6
+ 2543 0046 0D       		.uleb128 0xd
+ 2544 0047 00       		.byte	0
+ 2545 0048 03       		.uleb128 0x3
+ 2546 0049 0E       		.uleb128 0xe
+ 2547 004a 3A       		.uleb128 0x3a
+ 2548 004b 0B       		.uleb128 0xb
+ 2549 004c 3B       		.uleb128 0x3b
+ 2550 004d 0B       		.uleb128 0xb
+ 2551 004e 49       		.uleb128 0x49
+ 2552 004f 13       		.uleb128 0x13
+ 2553 0050 38       		.uleb128 0x38
+ 2554 0051 0B       		.uleb128 0xb
+ 2555 0052 00       		.byte	0
+ 2556 0053 00       		.byte	0
+ 2557 0054 07       		.uleb128 0x7
+ 2558 0055 04       		.uleb128 0x4
+ 2559 0056 01       		.byte	0x1
+ 2560 0057 03       		.uleb128 0x3
+ 2561 0058 0E       		.uleb128 0xe
+ 2562 0059 0B       		.uleb128 0xb
+ 2563 005a 0B       		.uleb128 0xb
+ 2564 005b 49       		.uleb128 0x49
+ 2565 005c 13       		.uleb128 0x13
+ 2566 005d 3A       		.uleb128 0x3a
+ 2567 005e 0B       		.uleb128 0xb
+ 2568 005f 3B       		.uleb128 0x3b
+ 2569 0060 0B       		.uleb128 0xb
+ 2570 0061 01       		.uleb128 0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 54
+
+
+ 2571 0062 13       		.uleb128 0x13
+ 2572 0063 00       		.byte	0
+ 2573 0064 00       		.byte	0
+ 2574 0065 08       		.uleb128 0x8
+ 2575 0066 28       		.uleb128 0x28
+ 2576 0067 00       		.byte	0
+ 2577 0068 03       		.uleb128 0x3
+ 2578 0069 0E       		.uleb128 0xe
+ 2579 006a 1C       		.uleb128 0x1c
+ 2580 006b 0B       		.uleb128 0xb
+ 2581 006c 00       		.byte	0
+ 2582 006d 00       		.byte	0
+ 2583 006e 09       		.uleb128 0x9
+ 2584 006f 0D       		.uleb128 0xd
+ 2585 0070 00       		.byte	0
+ 2586 0071 03       		.uleb128 0x3
+ 2587 0072 08       		.uleb128 0x8
+ 2588 0073 3A       		.uleb128 0x3a
+ 2589 0074 0B       		.uleb128 0xb
+ 2590 0075 3B       		.uleb128 0x3b
+ 2591 0076 0B       		.uleb128 0xb
+ 2592 0077 49       		.uleb128 0x49
+ 2593 0078 13       		.uleb128 0x13
+ 2594 0079 38       		.uleb128 0x38
+ 2595 007a 0B       		.uleb128 0xb
+ 2596 007b 00       		.byte	0
+ 2597 007c 00       		.byte	0
+ 2598 007d 0A       		.uleb128 0xa
+ 2599 007e 2E       		.uleb128 0x2e
+ 2600 007f 01       		.byte	0x1
+ 2601 0080 3F       		.uleb128 0x3f
+ 2602 0081 19       		.uleb128 0x19
+ 2603 0082 03       		.uleb128 0x3
+ 2604 0083 0E       		.uleb128 0xe
+ 2605 0084 3A       		.uleb128 0x3a
+ 2606 0085 0B       		.uleb128 0xb
+ 2607 0086 3B       		.uleb128 0x3b
+ 2608 0087 0B       		.uleb128 0xb
+ 2609 0088 27       		.uleb128 0x27
+ 2610 0089 19       		.uleb128 0x19
+ 2611 008a 11       		.uleb128 0x11
+ 2612 008b 01       		.uleb128 0x1
+ 2613 008c 12       		.uleb128 0x12
+ 2614 008d 06       		.uleb128 0x6
+ 2615 008e 40       		.uleb128 0x40
+ 2616 008f 18       		.uleb128 0x18
+ 2617 0090 9742     		.uleb128 0x2117
+ 2618 0092 19       		.uleb128 0x19
+ 2619 0093 01       		.uleb128 0x1
+ 2620 0094 13       		.uleb128 0x13
+ 2621 0095 00       		.byte	0
+ 2622 0096 00       		.byte	0
+ 2623 0097 0B       		.uleb128 0xb
+ 2624 0098 05       		.uleb128 0x5
+ 2625 0099 00       		.byte	0
+ 2626 009a 03       		.uleb128 0x3
+ 2627 009b 08       		.uleb128 0x8
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 55
+
+
+ 2628 009c 3A       		.uleb128 0x3a
+ 2629 009d 0B       		.uleb128 0xb
+ 2630 009e 3B       		.uleb128 0x3b
+ 2631 009f 0B       		.uleb128 0xb
+ 2632 00a0 49       		.uleb128 0x49
+ 2633 00a1 13       		.uleb128 0x13
+ 2634 00a2 02       		.uleb128 0x2
+ 2635 00a3 17       		.uleb128 0x17
+ 2636 00a4 00       		.byte	0
+ 2637 00a5 00       		.byte	0
+ 2638 00a6 0C       		.uleb128 0xc
+ 2639 00a7 05       		.uleb128 0x5
+ 2640 00a8 00       		.byte	0
+ 2641 00a9 03       		.uleb128 0x3
+ 2642 00aa 0E       		.uleb128 0xe
+ 2643 00ab 3A       		.uleb128 0x3a
+ 2644 00ac 0B       		.uleb128 0xb
+ 2645 00ad 3B       		.uleb128 0x3b
+ 2646 00ae 0B       		.uleb128 0xb
+ 2647 00af 49       		.uleb128 0x49
+ 2648 00b0 13       		.uleb128 0x13
+ 2649 00b1 02       		.uleb128 0x2
+ 2650 00b2 17       		.uleb128 0x17
+ 2651 00b3 00       		.byte	0
+ 2652 00b4 00       		.byte	0
+ 2653 00b5 0D       		.uleb128 0xd
+ 2654 00b6 0B       		.uleb128 0xb
+ 2655 00b7 01       		.byte	0x1
+ 2656 00b8 55       		.uleb128 0x55
+ 2657 00b9 17       		.uleb128 0x17
+ 2658 00ba 01       		.uleb128 0x1
+ 2659 00bb 13       		.uleb128 0x13
+ 2660 00bc 00       		.byte	0
+ 2661 00bd 00       		.byte	0
+ 2662 00be 0E       		.uleb128 0xe
+ 2663 00bf 34       		.uleb128 0x34
+ 2664 00c0 00       		.byte	0
+ 2665 00c1 03       		.uleb128 0x3
+ 2666 00c2 08       		.uleb128 0x8
+ 2667 00c3 3A       		.uleb128 0x3a
+ 2668 00c4 0B       		.uleb128 0xb
+ 2669 00c5 3B       		.uleb128 0x3b
+ 2670 00c6 0B       		.uleb128 0xb
+ 2671 00c7 49       		.uleb128 0x49
+ 2672 00c8 13       		.uleb128 0x13
+ 2673 00c9 02       		.uleb128 0x2
+ 2674 00ca 17       		.uleb128 0x17
+ 2675 00cb 00       		.byte	0
+ 2676 00cc 00       		.byte	0
+ 2677 00cd 0F       		.uleb128 0xf
+ 2678 00ce 898201   		.uleb128 0x4109
+ 2679 00d1 01       		.byte	0x1
+ 2680 00d2 11       		.uleb128 0x11
+ 2681 00d3 01       		.uleb128 0x1
+ 2682 00d4 31       		.uleb128 0x31
+ 2683 00d5 13       		.uleb128 0x13
+ 2684 00d6 00       		.byte	0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 56
+
+
+ 2685 00d7 00       		.byte	0
+ 2686 00d8 10       		.uleb128 0x10
+ 2687 00d9 8A8201   		.uleb128 0x410a
+ 2688 00dc 00       		.byte	0
+ 2689 00dd 02       		.uleb128 0x2
+ 2690 00de 18       		.uleb128 0x18
+ 2691 00df 9142     		.uleb128 0x2111
+ 2692 00e1 18       		.uleb128 0x18
+ 2693 00e2 00       		.byte	0
+ 2694 00e3 00       		.byte	0
+ 2695 00e4 11       		.uleb128 0x11
+ 2696 00e5 898201   		.uleb128 0x4109
+ 2697 00e8 00       		.byte	0
+ 2698 00e9 11       		.uleb128 0x11
+ 2699 00ea 01       		.uleb128 0x1
+ 2700 00eb 31       		.uleb128 0x31
+ 2701 00ec 13       		.uleb128 0x13
+ 2702 00ed 00       		.byte	0
+ 2703 00ee 00       		.byte	0
+ 2704 00ef 12       		.uleb128 0x12
+ 2705 00f0 0B       		.uleb128 0xb
+ 2706 00f1 01       		.byte	0x1
+ 2707 00f2 55       		.uleb128 0x55
+ 2708 00f3 17       		.uleb128 0x17
+ 2709 00f4 00       		.byte	0
+ 2710 00f5 00       		.byte	0
+ 2711 00f6 13       		.uleb128 0x13
+ 2712 00f7 898201   		.uleb128 0x4109
+ 2713 00fa 01       		.byte	0x1
+ 2714 00fb 11       		.uleb128 0x11
+ 2715 00fc 01       		.uleb128 0x1
+ 2716 00fd 31       		.uleb128 0x31
+ 2717 00fe 13       		.uleb128 0x13
+ 2718 00ff 01       		.uleb128 0x1
+ 2719 0100 13       		.uleb128 0x13
+ 2720 0101 00       		.byte	0
+ 2721 0102 00       		.byte	0
+ 2722 0103 14       		.uleb128 0x14
+ 2723 0104 2E       		.uleb128 0x2e
+ 2724 0105 01       		.byte	0x1
+ 2725 0106 3F       		.uleb128 0x3f
+ 2726 0107 19       		.uleb128 0x19
+ 2727 0108 03       		.uleb128 0x3
+ 2728 0109 0E       		.uleb128 0xe
+ 2729 010a 3A       		.uleb128 0x3a
+ 2730 010b 0B       		.uleb128 0xb
+ 2731 010c 3B       		.uleb128 0x3b
+ 2732 010d 0B       		.uleb128 0xb
+ 2733 010e 27       		.uleb128 0x27
+ 2734 010f 19       		.uleb128 0x19
+ 2735 0110 11       		.uleb128 0x11
+ 2736 0111 01       		.uleb128 0x1
+ 2737 0112 12       		.uleb128 0x12
+ 2738 0113 06       		.uleb128 0x6
+ 2739 0114 40       		.uleb128 0x40
+ 2740 0115 18       		.uleb128 0x18
+ 2741 0116 9642     		.uleb128 0x2116
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 57
+
+
+ 2742 0118 19       		.uleb128 0x19
+ 2743 0119 01       		.uleb128 0x1
+ 2744 011a 13       		.uleb128 0x13
+ 2745 011b 00       		.byte	0
+ 2746 011c 00       		.byte	0
+ 2747 011d 15       		.uleb128 0x15
+ 2748 011e 2E       		.uleb128 0x2e
+ 2749 011f 01       		.byte	0x1
+ 2750 0120 3F       		.uleb128 0x3f
+ 2751 0121 19       		.uleb128 0x19
+ 2752 0122 03       		.uleb128 0x3
+ 2753 0123 0E       		.uleb128 0xe
+ 2754 0124 3A       		.uleb128 0x3a
+ 2755 0125 0B       		.uleb128 0xb
+ 2756 0126 3B       		.uleb128 0x3b
+ 2757 0127 05       		.uleb128 0x5
+ 2758 0128 27       		.uleb128 0x27
+ 2759 0129 19       		.uleb128 0x19
+ 2760 012a 11       		.uleb128 0x11
+ 2761 012b 01       		.uleb128 0x1
+ 2762 012c 12       		.uleb128 0x12
+ 2763 012d 06       		.uleb128 0x6
+ 2764 012e 40       		.uleb128 0x40
+ 2765 012f 18       		.uleb128 0x18
+ 2766 0130 9742     		.uleb128 0x2117
+ 2767 0132 19       		.uleb128 0x19
+ 2768 0133 01       		.uleb128 0x1
+ 2769 0134 13       		.uleb128 0x13
+ 2770 0135 00       		.byte	0
+ 2771 0136 00       		.byte	0
+ 2772 0137 16       		.uleb128 0x16
+ 2773 0138 05       		.uleb128 0x5
+ 2774 0139 00       		.byte	0
+ 2775 013a 03       		.uleb128 0x3
+ 2776 013b 0E       		.uleb128 0xe
+ 2777 013c 3A       		.uleb128 0x3a
+ 2778 013d 0B       		.uleb128 0xb
+ 2779 013e 3B       		.uleb128 0x3b
+ 2780 013f 05       		.uleb128 0x5
+ 2781 0140 49       		.uleb128 0x49
+ 2782 0141 13       		.uleb128 0x13
+ 2783 0142 02       		.uleb128 0x2
+ 2784 0143 17       		.uleb128 0x17
+ 2785 0144 00       		.byte	0
+ 2786 0145 00       		.byte	0
+ 2787 0146 17       		.uleb128 0x17
+ 2788 0147 0B       		.uleb128 0xb
+ 2789 0148 01       		.byte	0x1
+ 2790 0149 11       		.uleb128 0x11
+ 2791 014a 01       		.uleb128 0x1
+ 2792 014b 12       		.uleb128 0x12
+ 2793 014c 06       		.uleb128 0x6
+ 2794 014d 00       		.byte	0
+ 2795 014e 00       		.byte	0
+ 2796 014f 18       		.uleb128 0x18
+ 2797 0150 34       		.uleb128 0x34
+ 2798 0151 00       		.byte	0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 58
+
+
+ 2799 0152 03       		.uleb128 0x3
+ 2800 0153 0E       		.uleb128 0xe
+ 2801 0154 3A       		.uleb128 0x3a
+ 2802 0155 0B       		.uleb128 0xb
+ 2803 0156 3B       		.uleb128 0x3b
+ 2804 0157 05       		.uleb128 0x5
+ 2805 0158 49       		.uleb128 0x49
+ 2806 0159 13       		.uleb128 0x13
+ 2807 015a 02       		.uleb128 0x2
+ 2808 015b 17       		.uleb128 0x17
+ 2809 015c 00       		.byte	0
+ 2810 015d 00       		.byte	0
+ 2811 015e 19       		.uleb128 0x19
+ 2812 015f 0B       		.uleb128 0xb
+ 2813 0160 01       		.byte	0x1
+ 2814 0161 11       		.uleb128 0x11
+ 2815 0162 01       		.uleb128 0x1
+ 2816 0163 12       		.uleb128 0x12
+ 2817 0164 06       		.uleb128 0x6
+ 2818 0165 01       		.uleb128 0x1
+ 2819 0166 13       		.uleb128 0x13
+ 2820 0167 00       		.byte	0
+ 2821 0168 00       		.byte	0
+ 2822 0169 1A       		.uleb128 0x1a
+ 2823 016a 34       		.uleb128 0x34
+ 2824 016b 00       		.byte	0
+ 2825 016c 03       		.uleb128 0x3
+ 2826 016d 08       		.uleb128 0x8
+ 2827 016e 3A       		.uleb128 0x3a
+ 2828 016f 0B       		.uleb128 0xb
+ 2829 0170 3B       		.uleb128 0x3b
+ 2830 0171 05       		.uleb128 0x5
+ 2831 0172 49       		.uleb128 0x49
+ 2832 0173 13       		.uleb128 0x13
+ 2833 0174 02       		.uleb128 0x2
+ 2834 0175 17       		.uleb128 0x17
+ 2835 0176 00       		.byte	0
+ 2836 0177 00       		.byte	0
+ 2837 0178 1B       		.uleb128 0x1b
+ 2838 0179 2E       		.uleb128 0x2e
+ 2839 017a 01       		.byte	0x1
+ 2840 017b 3F       		.uleb128 0x3f
+ 2841 017c 19       		.uleb128 0x19
+ 2842 017d 03       		.uleb128 0x3
+ 2843 017e 0E       		.uleb128 0xe
+ 2844 017f 3A       		.uleb128 0x3a
+ 2845 0180 0B       		.uleb128 0xb
+ 2846 0181 3B       		.uleb128 0x3b
+ 2847 0182 05       		.uleb128 0x5
+ 2848 0183 27       		.uleb128 0x27
+ 2849 0184 19       		.uleb128 0x19
+ 2850 0185 11       		.uleb128 0x11
+ 2851 0186 01       		.uleb128 0x1
+ 2852 0187 12       		.uleb128 0x12
+ 2853 0188 06       		.uleb128 0x6
+ 2854 0189 40       		.uleb128 0x40
+ 2855 018a 18       		.uleb128 0x18
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 59
+
+
+ 2856 018b 9642     		.uleb128 0x2116
+ 2857 018d 19       		.uleb128 0x19
+ 2858 018e 01       		.uleb128 0x1
+ 2859 018f 13       		.uleb128 0x13
+ 2860 0190 00       		.byte	0
+ 2861 0191 00       		.byte	0
+ 2862 0192 1C       		.uleb128 0x1c
+ 2863 0193 05       		.uleb128 0x5
+ 2864 0194 00       		.byte	0
+ 2865 0195 03       		.uleb128 0x3
+ 2866 0196 08       		.uleb128 0x8
+ 2867 0197 3A       		.uleb128 0x3a
+ 2868 0198 0B       		.uleb128 0xb
+ 2869 0199 3B       		.uleb128 0x3b
+ 2870 019a 05       		.uleb128 0x5
+ 2871 019b 49       		.uleb128 0x49
+ 2872 019c 13       		.uleb128 0x13
+ 2873 019d 02       		.uleb128 0x2
+ 2874 019e 17       		.uleb128 0x17
+ 2875 019f 00       		.byte	0
+ 2876 01a0 00       		.byte	0
+ 2877 01a1 1D       		.uleb128 0x1d
+ 2878 01a2 2E       		.uleb128 0x2e
+ 2879 01a3 01       		.byte	0x1
+ 2880 01a4 3F       		.uleb128 0x3f
+ 2881 01a5 19       		.uleb128 0x19
+ 2882 01a6 03       		.uleb128 0x3
+ 2883 01a7 0E       		.uleb128 0xe
+ 2884 01a8 3A       		.uleb128 0x3a
+ 2885 01a9 0B       		.uleb128 0xb
+ 2886 01aa 3B       		.uleb128 0x3b
+ 2887 01ab 0B       		.uleb128 0xb
+ 2888 01ac 27       		.uleb128 0x27
+ 2889 01ad 19       		.uleb128 0x19
+ 2890 01ae 49       		.uleb128 0x49
+ 2891 01af 13       		.uleb128 0x13
+ 2892 01b0 8701     		.uleb128 0x87
+ 2893 01b2 19       		.uleb128 0x19
+ 2894 01b3 11       		.uleb128 0x11
+ 2895 01b4 01       		.uleb128 0x1
+ 2896 01b5 12       		.uleb128 0x12
+ 2897 01b6 06       		.uleb128 0x6
+ 2898 01b7 40       		.uleb128 0x40
+ 2899 01b8 18       		.uleb128 0x18
+ 2900 01b9 9742     		.uleb128 0x2117
+ 2901 01bb 19       		.uleb128 0x19
+ 2902 01bc 01       		.uleb128 0x1
+ 2903 01bd 13       		.uleb128 0x13
+ 2904 01be 00       		.byte	0
+ 2905 01bf 00       		.byte	0
+ 2906 01c0 1E       		.uleb128 0x1e
+ 2907 01c1 34       		.uleb128 0x34
+ 2908 01c2 00       		.byte	0
+ 2909 01c3 03       		.uleb128 0x3
+ 2910 01c4 0E       		.uleb128 0xe
+ 2911 01c5 3A       		.uleb128 0x3a
+ 2912 01c6 0B       		.uleb128 0xb
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 60
+
+
+ 2913 01c7 3B       		.uleb128 0x3b
+ 2914 01c8 0B       		.uleb128 0xb
+ 2915 01c9 49       		.uleb128 0x49
+ 2916 01ca 13       		.uleb128 0x13
+ 2917 01cb 02       		.uleb128 0x2
+ 2918 01cc 17       		.uleb128 0x17
+ 2919 01cd 00       		.byte	0
+ 2920 01ce 00       		.byte	0
+ 2921 01cf 1F       		.uleb128 0x1f
+ 2922 01d0 34       		.uleb128 0x34
+ 2923 01d1 00       		.byte	0
+ 2924 01d2 03       		.uleb128 0x3
+ 2925 01d3 0E       		.uleb128 0xe
+ 2926 01d4 3A       		.uleb128 0x3a
+ 2927 01d5 0B       		.uleb128 0xb
+ 2928 01d6 3B       		.uleb128 0x3b
+ 2929 01d7 0B       		.uleb128 0xb
+ 2930 01d8 49       		.uleb128 0x49
+ 2931 01d9 13       		.uleb128 0x13
+ 2932 01da 3F       		.uleb128 0x3f
+ 2933 01db 19       		.uleb128 0x19
+ 2934 01dc 3C       		.uleb128 0x3c
+ 2935 01dd 19       		.uleb128 0x19
+ 2936 01de 00       		.byte	0
+ 2937 01df 00       		.byte	0
+ 2938 01e0 20       		.uleb128 0x20
+ 2939 01e1 01       		.uleb128 0x1
+ 2940 01e2 01       		.byte	0x1
+ 2941 01e3 49       		.uleb128 0x49
+ 2942 01e4 13       		.uleb128 0x13
+ 2943 01e5 01       		.uleb128 0x1
+ 2944 01e6 13       		.uleb128 0x13
+ 2945 01e7 00       		.byte	0
+ 2946 01e8 00       		.byte	0
+ 2947 01e9 21       		.uleb128 0x21
+ 2948 01ea 21       		.uleb128 0x21
+ 2949 01eb 00       		.byte	0
+ 2950 01ec 49       		.uleb128 0x49
+ 2951 01ed 13       		.uleb128 0x13
+ 2952 01ee 2F       		.uleb128 0x2f
+ 2953 01ef 0B       		.uleb128 0xb
+ 2954 01f0 00       		.byte	0
+ 2955 01f1 00       		.byte	0
+ 2956 01f2 22       		.uleb128 0x22
+ 2957 01f3 34       		.uleb128 0x34
+ 2958 01f4 00       		.byte	0
+ 2959 01f5 03       		.uleb128 0x3
+ 2960 01f6 08       		.uleb128 0x8
+ 2961 01f7 3A       		.uleb128 0x3a
+ 2962 01f8 0B       		.uleb128 0xb
+ 2963 01f9 3B       		.uleb128 0x3b
+ 2964 01fa 0B       		.uleb128 0xb
+ 2965 01fb 49       		.uleb128 0x49
+ 2966 01fc 13       		.uleb128 0x13
+ 2967 01fd 3F       		.uleb128 0x3f
+ 2968 01fe 19       		.uleb128 0x19
+ 2969 01ff 02       		.uleb128 0x2
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 61
+
+
+ 2970 0200 18       		.uleb128 0x18
+ 2971 0201 00       		.byte	0
+ 2972 0202 00       		.byte	0
+ 2973 0203 23       		.uleb128 0x23
+ 2974 0204 34       		.uleb128 0x34
+ 2975 0205 00       		.byte	0
+ 2976 0206 03       		.uleb128 0x3
+ 2977 0207 0E       		.uleb128 0xe
+ 2978 0208 3A       		.uleb128 0x3a
+ 2979 0209 0B       		.uleb128 0xb
+ 2980 020a 3B       		.uleb128 0x3b
+ 2981 020b 0B       		.uleb128 0xb
+ 2982 020c 49       		.uleb128 0x49
+ 2983 020d 13       		.uleb128 0x13
+ 2984 020e 3F       		.uleb128 0x3f
+ 2985 020f 19       		.uleb128 0x19
+ 2986 0210 02       		.uleb128 0x2
+ 2987 0211 18       		.uleb128 0x18
+ 2988 0212 00       		.byte	0
+ 2989 0213 00       		.byte	0
+ 2990 0214 24       		.uleb128 0x24
+ 2991 0215 2E       		.uleb128 0x2e
+ 2992 0216 00       		.byte	0
+ 2993 0217 3F       		.uleb128 0x3f
+ 2994 0218 19       		.uleb128 0x19
+ 2995 0219 3C       		.uleb128 0x3c
+ 2996 021a 19       		.uleb128 0x19
+ 2997 021b 6E       		.uleb128 0x6e
+ 2998 021c 0E       		.uleb128 0xe
+ 2999 021d 03       		.uleb128 0x3
+ 3000 021e 0E       		.uleb128 0xe
+ 3001 021f 3A       		.uleb128 0x3a
+ 3002 0220 0B       		.uleb128 0xb
+ 3003 0221 3B       		.uleb128 0x3b
+ 3004 0222 0B       		.uleb128 0xb
+ 3005 0223 00       		.byte	0
+ 3006 0224 00       		.byte	0
+ 3007 0225 00       		.byte	0
+ 3008              		.section	.debug_loc,"",%progbits
+ 3009              	.Ldebug_loc0:
+ 3010              	.LLST0:
+ 3011 0000 00000000 		.4byte	.LVL0
+ 3012 0004 18000000 		.4byte	.LVL2
+ 3013 0008 0100     		.2byte	0x1
+ 3014 000a 50       		.byte	0x50
+ 3015 000b 18000000 		.4byte	.LVL2
+ 3016 000f 26000000 		.4byte	.LVL5
+ 3017 0013 0400     		.2byte	0x4
+ 3018 0015 F3       		.byte	0xf3
+ 3019 0016 01       		.uleb128 0x1
+ 3020 0017 50       		.byte	0x50
+ 3021 0018 9F       		.byte	0x9f
+ 3022 0019 26000000 		.4byte	.LVL5
+ 3023 001d 28000000 		.4byte	.LVL6
+ 3024 0021 0100     		.2byte	0x1
+ 3025 0023 50       		.byte	0x50
+ 3026 0024 28000000 		.4byte	.LVL6
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 62
+
+
+ 3027 0028 54000000 		.4byte	.LFE35
+ 3028 002c 0400     		.2byte	0x4
+ 3029 002e F3       		.byte	0xf3
+ 3030 002f 01       		.uleb128 0x1
+ 3031 0030 50       		.byte	0x50
+ 3032 0031 9F       		.byte	0x9f
+ 3033 0032 00000000 		.4byte	0
+ 3034 0036 00000000 		.4byte	0
+ 3035              	.LLST1:
+ 3036 003a 00000000 		.4byte	.LVL0
+ 3037 003e 18000000 		.4byte	.LVL2
+ 3038 0042 0100     		.2byte	0x1
+ 3039 0044 51       		.byte	0x51
+ 3040 0045 18000000 		.4byte	.LVL2
+ 3041 0049 26000000 		.4byte	.LVL5
+ 3042 004d 0400     		.2byte	0x4
+ 3043 004f F3       		.byte	0xf3
+ 3044 0050 01       		.uleb128 0x1
+ 3045 0051 51       		.byte	0x51
+ 3046 0052 9F       		.byte	0x9f
+ 3047 0053 26000000 		.4byte	.LVL5
+ 3048 0057 28000000 		.4byte	.LVL6
+ 3049 005b 0100     		.2byte	0x1
+ 3050 005d 51       		.byte	0x51
+ 3051 005e 28000000 		.4byte	.LVL6
+ 3052 0062 54000000 		.4byte	.LFE35
+ 3053 0066 0400     		.2byte	0x4
+ 3054 0068 F3       		.byte	0xf3
+ 3055 0069 01       		.uleb128 0x1
+ 3056 006a 51       		.byte	0x51
+ 3057 006b 9F       		.byte	0x9f
+ 3058 006c 00000000 		.4byte	0
+ 3059 0070 00000000 		.4byte	0
+ 3060              	.LLST2:
+ 3061 0074 00000000 		.4byte	.LVL0
+ 3062 0078 18000000 		.4byte	.LVL2
+ 3063 007c 0100     		.2byte	0x1
+ 3064 007e 52       		.byte	0x52
+ 3065 007f 18000000 		.4byte	.LVL2
+ 3066 0083 26000000 		.4byte	.LVL5
+ 3067 0087 0400     		.2byte	0x4
+ 3068 0089 F3       		.byte	0xf3
+ 3069 008a 01       		.uleb128 0x1
+ 3070 008b 52       		.byte	0x52
+ 3071 008c 9F       		.byte	0x9f
+ 3072 008d 26000000 		.4byte	.LVL5
+ 3073 0091 28000000 		.4byte	.LVL6
+ 3074 0095 0100     		.2byte	0x1
+ 3075 0097 52       		.byte	0x52
+ 3076 0098 28000000 		.4byte	.LVL6
+ 3077 009c 54000000 		.4byte	.LFE35
+ 3078 00a0 0400     		.2byte	0x4
+ 3079 00a2 F3       		.byte	0xf3
+ 3080 00a3 01       		.uleb128 0x1
+ 3081 00a4 52       		.byte	0x52
+ 3082 00a5 9F       		.byte	0x9f
+ 3083 00a6 00000000 		.4byte	0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 63
+
+
+ 3084 00aa 00000000 		.4byte	0
+ 3085              	.LLST3:
+ 3086 00ae 00000000 		.4byte	.LVL0
+ 3087 00b2 10000000 		.4byte	.LVL1
+ 3088 00b6 0100     		.2byte	0x1
+ 3089 00b8 53       		.byte	0x53
+ 3090 00b9 10000000 		.4byte	.LVL1
+ 3091 00bd 4A000000 		.4byte	.LVL9
+ 3092 00c1 0100     		.2byte	0x1
+ 3093 00c3 58       		.byte	0x58
+ 3094 00c4 4A000000 		.4byte	.LVL9
+ 3095 00c8 54000000 		.4byte	.LFE35
+ 3096 00cc 0400     		.2byte	0x4
+ 3097 00ce F3       		.byte	0xf3
+ 3098 00cf 01       		.uleb128 0x1
+ 3099 00d0 53       		.byte	0x53
+ 3100 00d1 9F       		.byte	0x9f
+ 3101 00d2 00000000 		.4byte	0
+ 3102 00d6 00000000 		.4byte	0
+ 3103              	.LLST4:
+ 3104 00da 18000000 		.4byte	.LVL2
+ 3105 00de 26000000 		.4byte	.LVL5
+ 3106 00e2 0100     		.2byte	0x1
+ 3107 00e4 54       		.byte	0x54
+ 3108 00e5 28000000 		.4byte	.LVL6
+ 3109 00e9 3C000000 		.4byte	.LVL8
+ 3110 00ed 0100     		.2byte	0x1
+ 3111 00ef 54       		.byte	0x54
+ 3112 00f0 00000000 		.4byte	0
+ 3113 00f4 00000000 		.4byte	0
+ 3114              	.LLST5:
+ 3115 00f8 00000000 		.4byte	.LVL10
+ 3116 00fc 1A000000 		.4byte	.LVL12
+ 3117 0100 0100     		.2byte	0x1
+ 3118 0102 50       		.byte	0x50
+ 3119 0103 1A000000 		.4byte	.LVL12
+ 3120 0107 58000000 		.4byte	.LVL23
+ 3121 010b 0400     		.2byte	0x4
+ 3122 010d F3       		.byte	0xf3
+ 3123 010e 01       		.uleb128 0x1
+ 3124 010f 50       		.byte	0x50
+ 3125 0110 9F       		.byte	0x9f
+ 3126 0111 58000000 		.4byte	.LVL23
+ 3127 0115 5A000000 		.4byte	.LVL24
+ 3128 0119 0100     		.2byte	0x1
+ 3129 011b 50       		.byte	0x50
+ 3130 011c 5A000000 		.4byte	.LVL24
+ 3131 0120 78000000 		.4byte	.LFE36
+ 3132 0124 0400     		.2byte	0x4
+ 3133 0126 F3       		.byte	0xf3
+ 3134 0127 01       		.uleb128 0x1
+ 3135 0128 50       		.byte	0x50
+ 3136 0129 9F       		.byte	0x9f
+ 3137 012a 00000000 		.4byte	0
+ 3138 012e 00000000 		.4byte	0
+ 3139              	.LLST6:
+ 3140 0132 00000000 		.4byte	.LVL10
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 64
+
+
+ 3141 0136 1A000000 		.4byte	.LVL12
+ 3142 013a 0100     		.2byte	0x1
+ 3143 013c 51       		.byte	0x51
+ 3144 013d 1A000000 		.4byte	.LVL12
+ 3145 0141 58000000 		.4byte	.LVL23
+ 3146 0145 0400     		.2byte	0x4
+ 3147 0147 F3       		.byte	0xf3
+ 3148 0148 01       		.uleb128 0x1
+ 3149 0149 51       		.byte	0x51
+ 3150 014a 9F       		.byte	0x9f
+ 3151 014b 58000000 		.4byte	.LVL23
+ 3152 014f 5A000000 		.4byte	.LVL24
+ 3153 0153 0100     		.2byte	0x1
+ 3154 0155 51       		.byte	0x51
+ 3155 0156 5A000000 		.4byte	.LVL24
+ 3156 015a 78000000 		.4byte	.LFE36
+ 3157 015e 0400     		.2byte	0x4
+ 3158 0160 F3       		.byte	0xf3
+ 3159 0161 01       		.uleb128 0x1
+ 3160 0162 51       		.byte	0x51
+ 3161 0163 9F       		.byte	0x9f
+ 3162 0164 00000000 		.4byte	0
+ 3163 0168 00000000 		.4byte	0
+ 3164              	.LLST7:
+ 3165 016c 00000000 		.4byte	.LVL10
+ 3166 0170 1A000000 		.4byte	.LVL12
+ 3167 0174 0100     		.2byte	0x1
+ 3168 0176 52       		.byte	0x52
+ 3169 0177 1A000000 		.4byte	.LVL12
+ 3170 017b 58000000 		.4byte	.LVL23
+ 3171 017f 0400     		.2byte	0x4
+ 3172 0181 F3       		.byte	0xf3
+ 3173 0182 01       		.uleb128 0x1
+ 3174 0183 52       		.byte	0x52
+ 3175 0184 9F       		.byte	0x9f
+ 3176 0185 58000000 		.4byte	.LVL23
+ 3177 0189 5A000000 		.4byte	.LVL24
+ 3178 018d 0100     		.2byte	0x1
+ 3179 018f 52       		.byte	0x52
+ 3180 0190 5A000000 		.4byte	.LVL24
+ 3181 0194 78000000 		.4byte	.LFE36
+ 3182 0198 0400     		.2byte	0x4
+ 3183 019a F3       		.byte	0xf3
+ 3184 019b 01       		.uleb128 0x1
+ 3185 019c 52       		.byte	0x52
+ 3186 019d 9F       		.byte	0x9f
+ 3187 019e 00000000 		.4byte	0
+ 3188 01a2 00000000 		.4byte	0
+ 3189              	.LLST8:
+ 3190 01a6 00000000 		.4byte	.LVL10
+ 3191 01aa 12000000 		.4byte	.LVL11
+ 3192 01ae 0100     		.2byte	0x1
+ 3193 01b0 53       		.byte	0x53
+ 3194 01b1 12000000 		.4byte	.LVL11
+ 3195 01b5 6E000000 		.4byte	.LVL26
+ 3196 01b9 0100     		.2byte	0x1
+ 3197 01bb 5A       		.byte	0x5a
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 65
+
+
+ 3198 01bc 6E000000 		.4byte	.LVL26
+ 3199 01c0 78000000 		.4byte	.LFE36
+ 3200 01c4 0400     		.2byte	0x4
+ 3201 01c6 F3       		.byte	0xf3
+ 3202 01c7 01       		.uleb128 0x1
+ 3203 01c8 53       		.byte	0x53
+ 3204 01c9 9F       		.byte	0x9f
+ 3205 01ca 00000000 		.4byte	0
+ 3206 01ce 00000000 		.4byte	0
+ 3207              	.LLST9:
+ 3208 01d2 1A000000 		.4byte	.LVL12
+ 3209 01d6 58000000 		.4byte	.LVL23
+ 3210 01da 0100     		.2byte	0x1
+ 3211 01dc 55       		.byte	0x55
+ 3212 01dd 5A000000 		.4byte	.LVL24
+ 3213 01e1 5E000000 		.4byte	.LVL25
+ 3214 01e5 0100     		.2byte	0x1
+ 3215 01e7 55       		.byte	0x55
+ 3216 01e8 00000000 		.4byte	0
+ 3217 01ec 00000000 		.4byte	0
+ 3218              	.LLST10:
+ 3219 01f0 1A000000 		.4byte	.LVL12
+ 3220 01f4 28000000 		.4byte	.LVL14
+ 3221 01f8 0100     		.2byte	0x1
+ 3222 01fa 54       		.byte	0x54
+ 3223 01fb 2A000000 		.4byte	.LVL15
+ 3224 01ff 2C000000 		.4byte	.LVL16
+ 3225 0203 0100     		.2byte	0x1
+ 3226 0205 53       		.byte	0x53
+ 3227 0206 2C000000 		.4byte	.LVL16
+ 3228 020a 32000000 		.4byte	.LVL17
+ 3229 020e 0100     		.2byte	0x1
+ 3230 0210 54       		.byte	0x54
+ 3231 0211 32000000 		.4byte	.LVL17
+ 3232 0215 3E000000 		.4byte	.LVL19
+ 3233 0219 0100     		.2byte	0x1
+ 3234 021b 56       		.byte	0x56
+ 3235 021c 3E000000 		.4byte	.LVL19
+ 3236 0220 40000000 		.4byte	.LVL20
+ 3237 0224 0100     		.2byte	0x1
+ 3238 0226 54       		.byte	0x54
+ 3239 0227 40000000 		.4byte	.LVL20
+ 3240 022b 58000000 		.4byte	.LVL23
+ 3241 022f 0100     		.2byte	0x1
+ 3242 0231 56       		.byte	0x56
+ 3243 0232 00000000 		.4byte	0
+ 3244 0236 00000000 		.4byte	0
+ 3245              	.LLST11:
+ 3246 023a 00000000 		.4byte	.LVL27
+ 3247 023e 24000000 		.4byte	.LVL30
+ 3248 0242 0100     		.2byte	0x1
+ 3249 0244 50       		.byte	0x50
+ 3250 0245 24000000 		.4byte	.LVL30
+ 3251 0249 4E000000 		.4byte	.LVL35
+ 3252 024d 0400     		.2byte	0x4
+ 3253 024f F3       		.byte	0xf3
+ 3254 0250 01       		.uleb128 0x1
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 66
+
+
+ 3255 0251 50       		.byte	0x50
+ 3256 0252 9F       		.byte	0x9f
+ 3257 0253 4E000000 		.4byte	.LVL35
+ 3258 0257 50000000 		.4byte	.LVL36
+ 3259 025b 0100     		.2byte	0x1
+ 3260 025d 50       		.byte	0x50
+ 3261 025e 50000000 		.4byte	.LVL36
+ 3262 0262 80000000 		.4byte	.LFE37
+ 3263 0266 0400     		.2byte	0x4
+ 3264 0268 F3       		.byte	0xf3
+ 3265 0269 01       		.uleb128 0x1
+ 3266 026a 50       		.byte	0x50
+ 3267 026b 9F       		.byte	0x9f
+ 3268 026c 00000000 		.4byte	0
+ 3269 0270 00000000 		.4byte	0
+ 3270              	.LLST12:
+ 3271 0274 00000000 		.4byte	.LVL27
+ 3272 0278 24000000 		.4byte	.LVL30
+ 3273 027c 0100     		.2byte	0x1
+ 3274 027e 51       		.byte	0x51
+ 3275 027f 24000000 		.4byte	.LVL30
+ 3276 0283 4E000000 		.4byte	.LVL35
+ 3277 0287 0400     		.2byte	0x4
+ 3278 0289 F3       		.byte	0xf3
+ 3279 028a 01       		.uleb128 0x1
+ 3280 028b 51       		.byte	0x51
+ 3281 028c 9F       		.byte	0x9f
+ 3282 028d 4E000000 		.4byte	.LVL35
+ 3283 0291 50000000 		.4byte	.LVL36
+ 3284 0295 0100     		.2byte	0x1
+ 3285 0297 51       		.byte	0x51
+ 3286 0298 50000000 		.4byte	.LVL36
+ 3287 029c 80000000 		.4byte	.LFE37
+ 3288 02a0 0400     		.2byte	0x4
+ 3289 02a2 F3       		.byte	0xf3
+ 3290 02a3 01       		.uleb128 0x1
+ 3291 02a4 51       		.byte	0x51
+ 3292 02a5 9F       		.byte	0x9f
+ 3293 02a6 00000000 		.4byte	0
+ 3294 02aa 00000000 		.4byte	0
+ 3295              	.LLST13:
+ 3296 02ae 00000000 		.4byte	.LVL27
+ 3297 02b2 16000000 		.4byte	.LVL29
+ 3298 02b6 0100     		.2byte	0x1
+ 3299 02b8 52       		.byte	0x52
+ 3300 02b9 16000000 		.4byte	.LVL29
+ 3301 02bd 80000000 		.4byte	.LFE37
+ 3302 02c1 0400     		.2byte	0x4
+ 3303 02c3 F3       		.byte	0xf3
+ 3304 02c4 01       		.uleb128 0x1
+ 3305 02c5 52       		.byte	0x52
+ 3306 02c6 9F       		.byte	0x9f
+ 3307 02c7 00000000 		.4byte	0
+ 3308 02cb 00000000 		.4byte	0
+ 3309              	.LLST14:
+ 3310 02cf 00000000 		.4byte	.LVL27
+ 3311 02d3 0E000000 		.4byte	.LVL28
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 67
+
+
+ 3312 02d7 0100     		.2byte	0x1
+ 3313 02d9 53       		.byte	0x53
+ 3314 02da 0E000000 		.4byte	.LVL28
+ 3315 02de 78000000 		.4byte	.LVL39
+ 3316 02e2 0100     		.2byte	0x1
+ 3317 02e4 55       		.byte	0x55
+ 3318 02e5 78000000 		.4byte	.LVL39
+ 3319 02e9 80000000 		.4byte	.LFE37
+ 3320 02ed 0400     		.2byte	0x4
+ 3321 02ef F3       		.byte	0xf3
+ 3322 02f0 01       		.uleb128 0x1
+ 3323 02f1 53       		.byte	0x53
+ 3324 02f2 9F       		.byte	0x9f
+ 3325 02f3 00000000 		.4byte	0
+ 3326 02f7 00000000 		.4byte	0
+ 3327              	.LLST15:
+ 3328 02fb 24000000 		.4byte	.LVL30
+ 3329 02ff 4E000000 		.4byte	.LVL35
+ 3330 0303 0100     		.2byte	0x1
+ 3331 0305 54       		.byte	0x54
+ 3332 0306 50000000 		.4byte	.LVL36
+ 3333 030a 68000000 		.4byte	.LVL38
+ 3334 030e 0100     		.2byte	0x1
+ 3335 0310 54       		.byte	0x54
+ 3336 0311 00000000 		.4byte	0
+ 3337 0315 00000000 		.4byte	0
+ 3338              	.LLST16:
+ 3339 0319 00000000 		.4byte	.LVL40
+ 3340 031d 2C000000 		.4byte	.LVL44
+ 3341 0321 0100     		.2byte	0x1
+ 3342 0323 50       		.byte	0x50
+ 3343 0324 2C000000 		.4byte	.LVL44
+ 3344 0328 BC000000 		.4byte	.LFE38
+ 3345 032c 0400     		.2byte	0x4
+ 3346 032e F3       		.byte	0xf3
+ 3347 032f 01       		.uleb128 0x1
+ 3348 0330 50       		.byte	0x50
+ 3349 0331 9F       		.byte	0x9f
+ 3350 0332 00000000 		.4byte	0
+ 3351 0336 00000000 		.4byte	0
+ 3352              	.LLST17:
+ 3353 033a 00000000 		.4byte	.LVL40
+ 3354 033e 2C000000 		.4byte	.LVL44
+ 3355 0342 0100     		.2byte	0x1
+ 3356 0344 51       		.byte	0x51
+ 3357 0345 2C000000 		.4byte	.LVL44
+ 3358 0349 BC000000 		.4byte	.LFE38
+ 3359 034d 0400     		.2byte	0x4
+ 3360 034f F3       		.byte	0xf3
+ 3361 0350 01       		.uleb128 0x1
+ 3362 0351 51       		.byte	0x51
+ 3363 0352 9F       		.byte	0x9f
+ 3364 0353 00000000 		.4byte	0
+ 3365 0357 00000000 		.4byte	0
+ 3366              	.LLST18:
+ 3367 035b 00000000 		.4byte	.LVL40
+ 3368 035f 18000000 		.4byte	.LVL42
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 68
+
+
+ 3369 0363 0100     		.2byte	0x1
+ 3370 0365 52       		.byte	0x52
+ 3371 0366 18000000 		.4byte	.LVL42
+ 3372 036a A8000000 		.4byte	.LVL56
+ 3373 036e 0100     		.2byte	0x1
+ 3374 0370 55       		.byte	0x55
+ 3375 0371 A8000000 		.4byte	.LVL56
+ 3376 0375 BC000000 		.4byte	.LFE38
+ 3377 0379 0400     		.2byte	0x4
+ 3378 037b F3       		.byte	0xf3
+ 3379 037c 01       		.uleb128 0x1
+ 3380 037d 52       		.byte	0x52
+ 3381 037e 9F       		.byte	0x9f
+ 3382 037f 00000000 		.4byte	0
+ 3383 0383 00000000 		.4byte	0
+ 3384              	.LLST19:
+ 3385 0387 00000000 		.4byte	.LVL40
+ 3386 038b 10000000 		.4byte	.LVL41
+ 3387 038f 0100     		.2byte	0x1
+ 3388 0391 53       		.byte	0x53
+ 3389 0392 10000000 		.4byte	.LVL41
+ 3390 0396 A8000000 		.4byte	.LVL57
+ 3391 039a 0100     		.2byte	0x1
+ 3392 039c 59       		.byte	0x59
+ 3393 039d A8000000 		.4byte	.LVL57
+ 3394 03a1 BC000000 		.4byte	.LFE38
+ 3395 03a5 0400     		.2byte	0x4
+ 3396 03a7 F3       		.byte	0xf3
+ 3397 03a8 01       		.uleb128 0x1
+ 3398 03a9 53       		.byte	0x53
+ 3399 03aa 9F       		.byte	0x9f
+ 3400 03ab 00000000 		.4byte	0
+ 3401 03af 00000000 		.4byte	0
+ 3402              	.LLST20:
+ 3403 03b3 28000000 		.4byte	.LVL43
+ 3404 03b7 98000000 		.4byte	.LVL55
+ 3405 03bb 0100     		.2byte	0x1
+ 3406 03bd 54       		.byte	0x54
+ 3407 03be 00000000 		.4byte	0
+ 3408 03c2 00000000 		.4byte	0
+ 3409              	.LLST21:
+ 3410 03c6 28000000 		.4byte	.LVL43
+ 3411 03ca 2C000000 		.4byte	.LVL44
+ 3412 03ce 0200     		.2byte	0x2
+ 3413 03d0 30       		.byte	0x30
+ 3414 03d1 9F       		.byte	0x9f
+ 3415 03d2 2C000000 		.4byte	.LVL44
+ 3416 03d6 98000000 		.4byte	.LVL55
+ 3417 03da 0100     		.2byte	0x1
+ 3418 03dc 56       		.byte	0x56
+ 3419 03dd 00000000 		.4byte	0
+ 3420 03e1 00000000 		.4byte	0
+ 3421              	.LLST22:
+ 3422 03e5 3A000000 		.4byte	.LVL46
+ 3423 03e9 40000000 		.4byte	.LVL48
+ 3424 03ed 0100     		.2byte	0x1
+ 3425 03ef 53       		.byte	0x53
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 69
+
+
+ 3426 03f0 40000000 		.4byte	.LVL48
+ 3427 03f4 78000000 		.4byte	.LVL52
+ 3428 03f8 0500     		.2byte	0x5
+ 3429 03fa 74       		.byte	0x74
+ 3430 03fb 00       		.sleb128 0
+ 3431 03fc 38       		.byte	0x38
+ 3432 03fd 25       		.byte	0x25
+ 3433 03fe 9F       		.byte	0x9f
+ 3434 03ff 00000000 		.4byte	0
+ 3435 0403 00000000 		.4byte	0
+ 3436              	.LLST23:
+ 3437 0407 3C000000 		.4byte	.LVL47
+ 3438 040b 7A000000 		.4byte	.LVL53
+ 3439 040f 0100     		.2byte	0x1
+ 3440 0411 57       		.byte	0x57
+ 3441 0412 00000000 		.4byte	0
+ 3442 0416 00000000 		.4byte	0
+ 3443              	.LLST24:
+ 3444 041a 00000000 		.4byte	.LVL58
+ 3445 041e 33000000 		.4byte	.LVL62-1
+ 3446 0422 0100     		.2byte	0x1
+ 3447 0424 50       		.byte	0x50
+ 3448 0425 33000000 		.4byte	.LVL62-1
+ 3449 0429 3C000000 		.4byte	.LVL63
+ 3450 042d 0400     		.2byte	0x4
+ 3451 042f F3       		.byte	0xf3
+ 3452 0430 01       		.uleb128 0x1
+ 3453 0431 50       		.byte	0x50
+ 3454 0432 9F       		.byte	0x9f
+ 3455 0433 3C000000 		.4byte	.LVL63
+ 3456 0437 44000000 		.4byte	.LVL64
+ 3457 043b 0100     		.2byte	0x1
+ 3458 043d 50       		.byte	0x50
+ 3459 043e 44000000 		.4byte	.LVL64
+ 3460 0442 34010000 		.4byte	.LFE39
+ 3461 0446 0400     		.2byte	0x4
+ 3462 0448 F3       		.byte	0xf3
+ 3463 0449 01       		.uleb128 0x1
+ 3464 044a 50       		.byte	0x50
+ 3465 044b 9F       		.byte	0x9f
+ 3466 044c 00000000 		.4byte	0
+ 3467 0450 00000000 		.4byte	0
+ 3468              	.LLST25:
+ 3469 0454 00000000 		.4byte	.LVL58
+ 3470 0458 22000000 		.4byte	.LVL60
+ 3471 045c 0100     		.2byte	0x1
+ 3472 045e 51       		.byte	0x51
+ 3473 045f 22000000 		.4byte	.LVL60
+ 3474 0463 34010000 		.4byte	.LFE39
+ 3475 0467 0400     		.2byte	0x4
+ 3476 0469 F3       		.byte	0xf3
+ 3477 046a 01       		.uleb128 0x1
+ 3478 046b 51       		.byte	0x51
+ 3479 046c 9F       		.byte	0x9f
+ 3480 046d 00000000 		.4byte	0
+ 3481 0471 00000000 		.4byte	0
+ 3482              	.LLST26:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 70
+
+
+ 3483 0475 00000000 		.4byte	.LVL58
+ 3484 0479 24000000 		.4byte	.LVL61
+ 3485 047d 0100     		.2byte	0x1
+ 3486 047f 52       		.byte	0x52
+ 3487 0480 24000000 		.4byte	.LVL61
+ 3488 0484 34010000 		.4byte	.LFE39
+ 3489 0488 0400     		.2byte	0x4
+ 3490 048a F3       		.byte	0xf3
+ 3491 048b 01       		.uleb128 0x1
+ 3492 048c 52       		.byte	0x52
+ 3493 048d 9F       		.byte	0x9f
+ 3494 048e 00000000 		.4byte	0
+ 3495 0492 00000000 		.4byte	0
+ 3496              	.LLST27:
+ 3497 0496 00000000 		.4byte	.LVL58
+ 3498 049a 12000000 		.4byte	.LVL59
+ 3499 049e 0100     		.2byte	0x1
+ 3500 04a0 53       		.byte	0x53
+ 3501 04a1 12000000 		.4byte	.LVL59
+ 3502 04a5 10010000 		.4byte	.LVL73
+ 3503 04a9 0100     		.2byte	0x1
+ 3504 04ab 56       		.byte	0x56
+ 3505 04ac 10010000 		.4byte	.LVL73
+ 3506 04b0 34010000 		.4byte	.LFE39
+ 3507 04b4 0400     		.2byte	0x4
+ 3508 04b6 F3       		.byte	0xf3
+ 3509 04b7 01       		.uleb128 0x1
+ 3510 04b8 53       		.byte	0x53
+ 3511 04b9 9F       		.byte	0x9f
+ 3512 04ba 00000000 		.4byte	0
+ 3513 04be 00000000 		.4byte	0
+ 3514              	.LLST28:
+ 3515 04c2 0E000000 		.4byte	.LVL90
+ 3516 04c6 14000000 		.4byte	.LVL92
+ 3517 04ca 0200     		.2byte	0x2
+ 3518 04cc 30       		.byte	0x30
+ 3519 04cd 9F       		.byte	0x9f
+ 3520 04ce 14000000 		.4byte	.LVL92
+ 3521 04d2 32000000 		.4byte	.LVL96
+ 3522 04d6 0100     		.2byte	0x1
+ 3523 04d8 54       		.byte	0x54
+ 3524 04d9 32000000 		.4byte	.LVL96
+ 3525 04dd 34000000 		.4byte	.LVL97
+ 3526 04e1 0200     		.2byte	0x2
+ 3527 04e3 30       		.byte	0x30
+ 3528 04e4 9F       		.byte	0x9f
+ 3529 04e5 34000000 		.4byte	.LVL97
+ 3530 04e9 3C000000 		.4byte	.LFE34
+ 3531 04ed 0100     		.2byte	0x1
+ 3532 04ef 54       		.byte	0x54
+ 3533 04f0 00000000 		.4byte	0
+ 3534 04f4 00000000 		.4byte	0
+ 3535              		.section	.debug_aranges,"",%progbits
+ 3536 0000 4C000000 		.4byte	0x4c
+ 3537 0004 0200     		.2byte	0x2
+ 3538 0006 00000000 		.4byte	.Ldebug_info0
+ 3539 000a 04       		.byte	0x4
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 71
+
+
+ 3540 000b 00       		.byte	0
+ 3541 000c 0000     		.2byte	0
+ 3542 000e 0000     		.2byte	0
+ 3543 0010 00000000 		.4byte	.LFB35
+ 3544 0014 54000000 		.4byte	.LFE35-.LFB35
+ 3545 0018 00000000 		.4byte	.LFB36
+ 3546 001c 78000000 		.4byte	.LFE36-.LFB36
+ 3547 0020 00000000 		.4byte	.LFB37
+ 3548 0024 80000000 		.4byte	.LFE37-.LFB37
+ 3549 0028 00000000 		.4byte	.LFB38
+ 3550 002c BC000000 		.4byte	.LFE38-.LFB38
+ 3551 0030 00000000 		.4byte	.LFB39
+ 3552 0034 34010000 		.4byte	.LFE39-.LFB39
+ 3553 0038 00000000 		.4byte	.LFB33
+ 3554 003c F8010000 		.4byte	.LFE33-.LFB33
+ 3555 0040 00000000 		.4byte	.LFB34
+ 3556 0044 3C000000 		.4byte	.LFE34-.LFB34
+ 3557 0048 00000000 		.4byte	0
+ 3558 004c 00000000 		.4byte	0
+ 3559              		.section	.debug_ranges,"",%progbits
+ 3560              	.Ldebug_ranges0:
+ 3561 0000 18000000 		.4byte	.LBB2
+ 3562 0004 26000000 		.4byte	.LBE2
+ 3563 0008 28000000 		.4byte	.LBB3
+ 3564 000c 2C000000 		.4byte	.LBE3
+ 3565 0010 00000000 		.4byte	0
+ 3566 0014 00000000 		.4byte	0
+ 3567 0018 18000000 		.4byte	.LBB4
+ 3568 001c 58000000 		.4byte	.LBE4
+ 3569 0020 5A000000 		.4byte	.LBB7
+ 3570 0024 5E000000 		.4byte	.LBE7
+ 3571 0028 00000000 		.4byte	0
+ 3572 002c 00000000 		.4byte	0
+ 3573 0030 1A000000 		.4byte	.LBB5
+ 3574 0034 28000000 		.4byte	.LBE5
+ 3575 0038 2A000000 		.4byte	.LBB6
+ 3576 003c 54000000 		.4byte	.LBE6
+ 3577 0040 00000000 		.4byte	0
+ 3578 0044 00000000 		.4byte	0
+ 3579 0048 24000000 		.4byte	.LBB8
+ 3580 004c 4E000000 		.4byte	.LBE8
+ 3581 0050 50000000 		.4byte	.LBB9
+ 3582 0054 54000000 		.4byte	.LBE9
+ 3583 0058 00000000 		.4byte	0
+ 3584 005c 00000000 		.4byte	0
+ 3585 0060 00000000 		.4byte	.LFB35
+ 3586 0064 54000000 		.4byte	.LFE35
+ 3587 0068 00000000 		.4byte	.LFB36
+ 3588 006c 78000000 		.4byte	.LFE36
+ 3589 0070 00000000 		.4byte	.LFB37
+ 3590 0074 80000000 		.4byte	.LFE37
+ 3591 0078 00000000 		.4byte	.LFB38
+ 3592 007c BC000000 		.4byte	.LFE38
+ 3593 0080 00000000 		.4byte	.LFB39
+ 3594 0084 34010000 		.4byte	.LFE39
+ 3595 0088 00000000 		.4byte	.LFB33
+ 3596 008c F8010000 		.4byte	.LFE33
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 72
+
+
+ 3597 0090 00000000 		.4byte	.LFB34
+ 3598 0094 3C000000 		.4byte	.LFE34
+ 3599 0098 00000000 		.4byte	0
+ 3600 009c 00000000 		.4byte	0
+ 3601              		.section	.debug_line,"",%progbits
+ 3602              	.Ldebug_line0:
+ 3603 0000 D1020000 		.section	.debug_str,"MS",%progbits,1
+ 3603      02005A01 
+ 3603      00000201 
+ 3603      FB0E0D00 
+ 3603      01010101 
+ 3604              	.LASF60:
+ 3605 0000 42544E5F 		.ascii	"BTN_getHeld\000"
+ 3605      67657448 
+ 3605      656C6400 
+ 3606              	.LASF41:
+ 3607 000c 6672616D 		.ascii	"frames\000"
+ 3607      657300
+ 3608              	.LASF42:
+ 3609 0013 6672616D 		.ascii	"frameAdvance\000"
+ 3609      65416476 
+ 3609      616E6365 
+ 3609      00
+ 3610              	.LASF33:
+ 3611 0020 73746174 		.ascii	"state\000"
+ 3611      6500
+ 3612              	.LASF57:
+ 3613 0026 4E656F50 		.ascii	"NeoPixel_show\000"
+ 3613      6978656C 
+ 3613      5F73686F 
+ 3613      7700
+ 3614              	.LASF2:
+ 3615 0034 73686F72 		.ascii	"short int\000"
+ 3615      7420696E 
+ 3615      7400
+ 3616              	.LASF30:
+ 3617 003e 54484541 		.ascii	"THEATER_CHASE\000"
+ 3617      5445525F 
+ 3617      43484153 
+ 3617      4500
+ 3618              	.LASF19:
+ 3619 004c 73697A65 		.ascii	"sizetype\000"
+ 3619      74797065 
+ 3619      00
+ 3620              	.LASF55:
+ 3621 0055 66697273 		.ascii	"firstPixelHue\000"
+ 3621      74506978 
+ 3621      656C4875 
+ 3621      6500
+ 3622              	.LASF67:
+ 3623 0063 6D61696E 		.ascii	"main\000"
+ 3623      00
+ 3624              	.LASF45:
+ 3625 0068 70686173 		.ascii	"phase\000"
+ 3625      6500
+ 3626              	.LASF9:
+ 3627 006e 6C6F6E67 		.ascii	"long long int\000"
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 73
+
+
+ 3627      206C6F6E 
+ 3627      6720696E 
+ 3627      7400
+ 3628              	.LASF7:
+ 3629 007c 5F5F7569 		.ascii	"__uint32_t\000"
+ 3629      6E743332 
+ 3629      5F7400
+ 3630              	.LASF36:
+ 3631 0087 64656C61 		.ascii	"delay\000"
+ 3631      7900
+ 3632              	.LASF62:
+ 3633 008d 42544E5F 		.ascii	"BTN_task\000"
+ 3633      7461736B 
+ 3633      00
+ 3634              	.LASF4:
+ 3635 0096 5F5F7569 		.ascii	"__uint16_t\000"
+ 3635      6E743136 
+ 3635      5F7400
+ 3636              	.LASF64:
+ 3637 00a1 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 3637      43313120 
+ 3637      352E342E 
+ 3637      31203230 
+ 3637      31363036 
+ 3638 00d4 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 3638      20726576 
+ 3638      6973696F 
+ 3638      6E203233 
+ 3638      37373135 
+ 3639 0107 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 3639      66756E63 
+ 3639      74696F6E 
+ 3639      2D736563 
+ 3639      74696F6E 
+ 3640              	.LASF26:
+ 3641 012f 42544E5F 		.ascii	"BTN_INSTANCE_t\000"
+ 3641      494E5354 
+ 3641      414E4345 
+ 3641      5F7400
+ 3642              	.LASF12:
+ 3643 013e 75696E74 		.ascii	"uint8_t\000"
+ 3643      385F7400 
+ 3644              	.LASF23:
+ 3645 0146 74696D65 		.ascii	"timer\000"
+ 3645      7200
+ 3646              	.LASF37:
+ 3647 014c 73686F77 		.ascii	"showColor\000"
+ 3647      436F6C6F 
+ 3647      7200
+ 3648              	.LASF27:
+ 3649 0156 49444C45 		.ascii	"IDLE\000"
+ 3649      00
+ 3650              	.LASF0:
+ 3651 015b 7369676E 		.ascii	"signed char\000"
+ 3651      65642063 
+ 3651      68617200 
+ 3652              	.LASF50:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 74
+
+
+ 3653 0167 64657669 		.ascii	"device\000"
+ 3653      636500
+ 3654              	.LASF15:
+ 3655 016e 666C6F61 		.ascii	"float\000"
+ 3655      7400
+ 3656              	.LASF22:
+ 3657 0174 69734163 		.ascii	"isAcknowledged\000"
+ 3657      6B6E6F77 
+ 3657      6C656467 
+ 3657      656400
+ 3658              	.LASF38:
+ 3659 0183 636F6C6F 		.ascii	"colorWipe\000"
+ 3659      72576970 
+ 3659      6500
+ 3660              	.LASF66:
+ 3661 018d 443A5C45 		.ascii	"D:\\EE\\GitHub\\Psoc\\NeoPixel\\NeoPixel.cydsn\000"
+ 3661      455C4769 
+ 3661      74487562 
+ 3661      5C50736F 
+ 3661      635C4E65 
+ 3662              	.LASF3:
+ 3663 01b7 5F5F7569 		.ascii	"__uint8_t\000"
+ 3663      6E74385F 
+ 3663      7400
+ 3664              	.LASF24:
+ 3665 01c1 73656E73 		.ascii	"sense\000"
+ 3665      6500
+ 3666              	.LASF1:
+ 3667 01c7 756E7369 		.ascii	"unsigned char\000"
+ 3667      676E6564 
+ 3667      20636861 
+ 3667      7200
+ 3668              	.LASF53:
+ 3669 01d5 73746174 		.ascii	"statetmr\000"
+ 3669      65746D72 
+ 3669      00
+ 3670              	.LASF18:
+ 3671 01de 6C6F6E67 		.ascii	"long double\000"
+ 3671      20646F75 
+ 3671      626C6500 
+ 3672              	.LASF52:
+ 3673 01ea 636F756E 		.ascii	"counter\000"
+ 3673      74657200 
+ 3674              	.LASF59:
+ 3675 01f2 4C454441 		.ascii	"LEDA_Write\000"
+ 3675      5F577269 
+ 3675      746500
+ 3676              	.LASF35:
+ 3677 01fd 6E65775F 		.ascii	"new_state\000"
+ 3677      73746174 
+ 3677      6500
+ 3678              	.LASF49:
+ 3679 0207 7469636B 		.ascii	"ticks\000"
+ 3679      7300
+ 3680              	.LASF10:
+ 3681 020d 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 3681      206C6F6E 
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 75
+
+
+ 3681      6720756E 
+ 3681      7369676E 
+ 3681      65642069 
+ 3682              	.LASF14:
+ 3683 0224 75696E74 		.ascii	"uint32_t\000"
+ 3683      33325F74 
+ 3683      00
+ 3684              	.LASF11:
+ 3685 022d 756E7369 		.ascii	"unsigned int\000"
+ 3685      676E6564 
+ 3685      20696E74 
+ 3685      00
+ 3686              	.LASF13:
+ 3687 023a 75696E74 		.ascii	"uint16_t\000"
+ 3687      31365F74 
+ 3687      00
+ 3688              	.LASF51:
+ 3689 0243 64656C61 		.ascii	"delaytmr\000"
+ 3689      79746D72 
+ 3689      00
+ 3690              	.LASF5:
+ 3691 024c 73686F72 		.ascii	"short unsigned int\000"
+ 3691      7420756E 
+ 3691      7369676E 
+ 3691      65642069 
+ 3691      6E7400
+ 3692              	.LASF47:
+ 3693 025f 6465746F 		.ascii	"detonate\000"
+ 3693      6E617465 
+ 3693      00
+ 3694              	.LASF21:
+ 3695 0268 69734865 		.ascii	"isHeld\000"
+ 3695      6C6400
+ 3696              	.LASF17:
+ 3697 026f 63686172 		.ascii	"char\000"
+ 3697      00
+ 3698              	.LASF6:
+ 3699 0274 6C6F6E67 		.ascii	"long int\000"
+ 3699      20696E74 
+ 3699      00
+ 3700              	.LASF40:
+ 3701 027d 7261696E 		.ascii	"rainbowCycle\000"
+ 3701      626F7743 
+ 3701      79636C65 
+ 3701      00
+ 3702              	.LASF58:
+ 3703 028a 42544E5F 		.ascii	"BTN_getPressed\000"
+ 3703      67657450 
+ 3703      72657373 
+ 3703      656400
+ 3704              	.LASF28:
+ 3705 0299 5241494E 		.ascii	"RAINBOW\000"
+ 3705      424F5700 
+ 3706              	.LASF48:
+ 3707 02a1 64657669 		.ascii	"device_task\000"
+ 3707      63655F74 
+ 3707      61736B00 
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 76
+
+
+ 3708              	.LASF25:
+ 3709 02ad 5F426F6F 		.ascii	"_Bool\000"
+ 3709      6C00
+ 3710              	.LASF44:
+ 3711 02b3 63757272 		.ascii	"currentPixelHue\000"
+ 3711      656E7450 
+ 3711      6978656C 
+ 3711      48756500 
+ 3712              	.LASF65:
+ 3713 02c3 6D61696E 		.ascii	"main.c\000"
+ 3713      2E6300
+ 3714              	.LASF56:
+ 3715 02ca 4E656F50 		.ascii	"NeoPixel_sendPixel\000"
+ 3715      6978656C 
+ 3715      5F73656E 
+ 3715      64506978 
+ 3715      656C00
+ 3716              	.LASF8:
+ 3717 02dd 6C6F6E67 		.ascii	"long unsigned int\000"
+ 3717      20756E73 
+ 3717      69676E65 
+ 3717      6420696E 
+ 3717      7400
+ 3718              	.LASF16:
+ 3719 02ef 646F7562 		.ascii	"double\000"
+ 3719      6C6500
+ 3720              	.LASF20:
+ 3721 02f6 69735072 		.ascii	"isPressed\000"
+ 3721      65737365 
+ 3721      6400
+ 3722              	.LASF43:
+ 3723 0300 70697865 		.ascii	"pixelAdvance\000"
+ 3723      6C416476 
+ 3723      616E6365 
+ 3723      00
+ 3724              	.LASF32:
+ 3725 030d 44657653 		.ascii	"DevState\000"
+ 3725      74617465 
+ 3725      00
+ 3726              	.LASF39:
+ 3727 0316 74686561 		.ascii	"theaterChase\000"
+ 3727      74657243 
+ 3727      68617365 
+ 3727      00
+ 3728              	.LASF63:
+ 3729 0323 4C454441 		.ascii	"LEDA_Read\000"
+ 3729      5F526561 
+ 3729      6400
+ 3730              	.LASF29:
+ 3731 032d 4558504C 		.ascii	"EXPLODE\000"
+ 3731      4F444500 
+ 3732              	.LASF61:
+ 3733 0335 4E656F50 		.ascii	"NeoPixel_Init\000"
+ 3733      6978656C 
+ 3733      5F496E69 
+ 3733      7400
+ 3734              	.LASF34:
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\ccKtXakY.s 			page 77
+
+
+ 3735 0343 70726576 		.ascii	"prev_state\000"
+ 3735      5F737461 
+ 3735      746500
+ 3736              	.LASF31:
+ 3737 034e 4445565F 		.ascii	"DEV_STATES_t\000"
+ 3737      53544154 
+ 3737      45535F74 
+ 3737      00
+ 3738              	.LASF46:
+ 3739 035b 73746570 		.ascii	"step\000"
+ 3739      00
+ 3740              	.LASF54:
+ 3741 0360 66616465 		.ascii	"fade\000"
+ 3741      00
+ 3742              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

@@ -1,0 +1,1111 @@
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m0
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 0
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.syntax unified
+  15              		.file	"btns.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.section	.text.BTN_getPressed,"ax",%progbits
+  20              		.align	2
+  21              		.global	BTN_getPressed
+  22              		.code	16
+  23              		.thumb_func
+  24              		.type	BTN_getPressed, %function
+  25              	BTN_getPressed:
+  26              	.LFB32:
+  27              		.file 1 "btns.c"
+   1:btns.c        **** /* ========================================
+   2:btns.c        ****  *
+   3:btns.c        ****  * Copyright YOUR COMPANY, THE YEAR
+   4:btns.c        ****  * All Rights Reserved
+   5:btns.c        ****  * UNPUBLISHED, LICENSED SOFTWARE.
+   6:btns.c        ****  *
+   7:btns.c        ****  * CONFIDENTIAL AND PROPRIETARY INFORMATION
+   8:btns.c        ****  * WHICH IS THE PROPERTY OF your company.
+   9:btns.c        ****  *
+  10:btns.c        ****  * ========================================
+  11:btns.c        **** */
+  12:btns.c        **** #define BTNS_H_
+  13:btns.c        **** #include <btns.h>
+  14:btns.c        **** #include <project.h>
+  15:btns.c        **** 
+  16:btns.c        **** DevState device;
+  17:btns.c        **** /**
+  18:btns.c        ****  * @fn bool BTN_getPressed ( BTN_NAMES_t button )
+  19:btns.c        ****  * @param button the button name to read
+  20:btns.c        ****  * @return true if an unacknowledged press has occurred
+  21:btns.c        ****  *
+  22:btns.c        ****  * This function will check the acknowledged flag for a given button
+  23:btns.c        ****  * and return the appropriate value. If a press has been acknowledged
+  24:btns.c        ****  * (by calling this function) then then the current press is not
+  25:btns.c        ****  * returned.
+  26:btns.c        ****  *
+  27:btns.c        ****  * Presses are persistent until read!
+  28:btns.c        ****  */
+  29:btns.c        **** bool BTN_getPressed()
+  30:btns.c        **** {
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 2
+
+
+  28              		.loc 1 30 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		@ link register save eliminated.
+  33              	.LVL0:
+  31:btns.c        **** 	bool result = false;
+  32:btns.c        **** 	if (device.btn.isPressed)
+  34              		.loc 1 32 0
+  35 0000 084B     		ldr	r3, .L5
+  36 0002 1B7A     		ldrb	r3, [r3, #8]
+  37 0004 002B     		cmp	r3, #0
+  38 0006 08D0     		beq	.L3
+  33:btns.c        **** 	{
+  34:btns.c        **** 		//------------------------------------------------------
+  35:btns.c        **** 		// only return the press if not acknowledged
+  36:btns.c        **** 		//------------------------------------------------------
+  37:btns.c        **** 		if (!device.btn.isAcknowledged)
+  39              		.loc 1 37 0
+  40 0008 064B     		ldr	r3, .L5
+  41 000a 9B7A     		ldrb	r3, [r3, #10]
+  42 000c 002B     		cmp	r3, #0
+  43 000e 06D1     		bne	.L4
+  44              	.LVL1:
+  38:btns.c        **** 		{
+  39:btns.c        **** 			result = true;
+  40:btns.c        **** 			device.btn.isAcknowledged = true;
+  45              		.loc 1 40 0
+  46 0010 0122     		movs	r2, #1
+  47 0012 044B     		ldr	r3, .L5
+  48 0014 9A72     		strb	r2, [r3, #10]
+  39:btns.c        **** 			device.btn.isAcknowledged = true;
+  49              		.loc 1 39 0
+  50 0016 0120     		movs	r0, #1
+  51 0018 02E0     		b	.L2
+  52              	.LVL2:
+  53              	.L3:
+  31:btns.c        **** 	if (device.btn.isPressed)
+  54              		.loc 1 31 0
+  55 001a 0020     		movs	r0, #0
+  56 001c 00E0     		b	.L2
+  57              	.L4:
+  58 001e 0020     		movs	r0, #0
+  59              	.LVL3:
+  60              	.L2:
+  41:btns.c        **** 		}
+  42:btns.c        **** 	}
+  43:btns.c        **** 
+  44:btns.c        **** 	return result;
+  45:btns.c        **** }
+  61              		.loc 1 45 0
+  62              		@ sp needed
+  63 0020 7047     		bx	lr
+  64              	.L6:
+  65 0022 C046     		.align	2
+  66              	.L5:
+  67 0024 00000000 		.word	device
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 3
+
+
+  68              		.cfi_endproc
+  69              	.LFE32:
+  70              		.size	BTN_getPressed, .-BTN_getPressed
+  71              		.section	.text.BTN_getHeld,"ax",%progbits
+  72              		.align	2
+  73              		.global	BTN_getHeld
+  74              		.code	16
+  75              		.thumb_func
+  76              		.type	BTN_getHeld, %function
+  77              	BTN_getHeld:
+  78              	.LFB33:
+  46:btns.c        **** 
+  47:btns.c        **** /**
+  48:btns.c        ****  * @fn bool BTN_getHeld ( BTN_NAMES_t button )
+  49:btns.c        ****  * @param button the name of the button to read
+  50:btns.c        ****  * @return true if the button is held
+  51:btns.c        ****  *
+  52:btns.c        ****  * This function will return the value of the held flag. Releasing the
+  53:btns.c        ****  * button clears the flag. There is no time base on held events.
+  54:btns.c        ****  */
+  55:btns.c        **** bool BTN_getHeld()
+  56:btns.c        **** {
+  79              		.loc 1 56 0
+  80              		.cfi_startproc
+  81              		@ args = 0, pretend = 0, frame = 0
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  83              		@ link register save eliminated.
+  57:btns.c        **** 	return device.btn.isHeld;
+  84              		.loc 1 57 0
+  85 0000 014B     		ldr	r3, .L8
+  86 0002 587A     		ldrb	r0, [r3, #9]
+  58:btns.c        **** }
+  87              		.loc 1 58 0
+  88              		@ sp needed
+  89 0004 7047     		bx	lr
+  90              	.L9:
+  91 0006 C046     		.align	2
+  92              	.L8:
+  93 0008 00000000 		.word	device
+  94              		.cfi_endproc
+  95              	.LFE33:
+  96              		.size	BTN_getHeld, .-BTN_getHeld
+  97              		.section	.text.BTN_task,"ax",%progbits
+  98              		.align	2
+  99              		.global	BTN_task
+ 100              		.code	16
+ 101              		.thumb_func
+ 102              		.type	BTN_task, %function
+ 103              	BTN_task:
+ 104              	.LFB34:
+  59:btns.c        **** 
+  60:btns.c        **** void BTN_task(void)
+  61:btns.c        **** {
+ 105              		.loc 1 61 0
+ 106              		.cfi_startproc
+ 107              		@ args = 0, pretend = 0, frame = 0
+ 108              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 4
+
+
+ 109 0000 10B5     		push	{r4, lr}
+ 110              		.cfi_def_cfa_offset 8
+ 111              		.cfi_offset 4, -8
+ 112              		.cfi_offset 14, -4
+  62:btns.c        **** 
+  63:btns.c        **** 	//--------------------------------------------
+  64:btns.c        **** 	// get the values from the GPIO
+  65:btns.c        **** 	device.btn.sense = !BTN_Read();
+ 113              		.loc 1 65 0
+ 114 0002 FFF7FEFF 		bl	BTN_Read
+ 115              	.LVL4:
+ 116 0006 4342     		rsbs	r3, r0, #0
+ 117 0008 5841     		adcs	r0, r0, r3
+ 118 000a C0B2     		uxtb	r0, r0
+ 119 000c 124B     		ldr	r3, .L15
+ 120 000e 1874     		strb	r0, [r3, #16]
+  66:btns.c        **** 
+  67:btns.c        **** 	//--------------------------------------------
+  68:btns.c        **** 	// software debounce for press / hold events.
+  69:btns.c        **** 	//--------------------------------------------
+  70:btns.c        **** 	if (device.btn.sense == 1)
+ 121              		.loc 1 70 0
+ 122 0010 0028     		cmp	r0, #0
+ 123 0012 16D0     		beq	.L11
+  71:btns.c        **** 	{
+  72:btns.c        **** 		if (device.btn.timer < BTN_HOLD_TIME)
+ 124              		.loc 1 72 0
+ 125 0014 DB68     		ldr	r3, [r3, #12]
+ 126 0016 114A     		ldr	r2, .L15+4
+ 127 0018 9342     		cmp	r3, r2
+ 128 001a 03D8     		bhi	.L12
+  73:btns.c        **** 		{
+  74:btns.c        **** 			device.btn.timer += BTN_TICK_TIME;
+ 129              		.loc 1 74 0
+ 130 001c 0133     		adds	r3, r3, #1
+ 131 001e 0E4A     		ldr	r2, .L15
+ 132 0020 D360     		str	r3, [r2, #12]
+ 133 0022 02E0     		b	.L13
+ 134              	.L12:
+  75:btns.c        **** 		}
+  76:btns.c        **** 		else
+  77:btns.c        **** 		{
+  78:btns.c        **** 			device.btn.isHeld = true;
+ 135              		.loc 1 78 0
+ 136 0024 0122     		movs	r2, #1
+ 137 0026 0C4B     		ldr	r3, .L15
+ 138 0028 5A72     		strb	r2, [r3, #9]
+ 139              	.L13:
+  79:btns.c        **** 		}
+  80:btns.c        **** 
+  81:btns.c        **** 		if (device.btn.timer > BTN_PRESS_MSEC)
+ 140              		.loc 1 81 0
+ 141 002a 0B4B     		ldr	r3, .L15
+ 142 002c DB68     		ldr	r3, [r3, #12]
+ 143 002e 322B     		cmp	r3, #50
+ 144 0030 11D9     		bls	.L10
+  82:btns.c        **** 		{
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 5
+
+
+  83:btns.c        **** 			if (!device.btn.isAcknowledged)
+ 145              		.loc 1 83 0
+ 146 0032 094B     		ldr	r3, .L15
+ 147 0034 9B7A     		ldrb	r3, [r3, #10]
+ 148 0036 002B     		cmp	r3, #0
+ 149 0038 0DD1     		bne	.L10
+  84:btns.c        **** 			{
+  85:btns.c        **** 				device.btn.isPressed = true;
+ 150              		.loc 1 85 0
+ 151 003a 0122     		movs	r2, #1
+ 152 003c 064B     		ldr	r3, .L15
+ 153 003e 1A72     		strb	r2, [r3, #8]
+ 154 0040 09E0     		b	.L10
+ 155              	.L11:
+  86:btns.c        **** 			}
+  87:btns.c        **** 		}
+  88:btns.c        **** 	}
+  89:btns.c        **** 	else
+  90:btns.c        **** 	{
+  91:btns.c        **** 		device.btn.timer = 0;
+ 156              		.loc 1 91 0
+ 157 0042 054B     		ldr	r3, .L15
+ 158 0044 0022     		movs	r2, #0
+ 159 0046 DA60     		str	r2, [r3, #12]
+  92:btns.c        **** 		device.btn.isHeld = false;
+ 160              		.loc 1 92 0
+ 161 0048 5A72     		strb	r2, [r3, #9]
+  93:btns.c        **** 
+  94:btns.c        **** 		if (device.btn.isAcknowledged == true)
+ 162              		.loc 1 94 0
+ 163 004a 9B7A     		ldrb	r3, [r3, #10]
+ 164 004c 002B     		cmp	r3, #0
+ 165 004e 02D0     		beq	.L10
+  95:btns.c        **** 		{
+  96:btns.c        **** 			device.btn.isPressed = false;
+ 166              		.loc 1 96 0
+ 167 0050 014B     		ldr	r3, .L15
+ 168 0052 1A72     		strb	r2, [r3, #8]
+  97:btns.c        **** 			device.btn.isAcknowledged = false;
+ 169              		.loc 1 97 0
+ 170 0054 9A72     		strb	r2, [r3, #10]
+ 171              	.L10:
+  98:btns.c        **** 		}
+  99:btns.c        **** 	}
+ 100:btns.c        **** }
+ 172              		.loc 1 100 0
+ 173              		@ sp needed
+ 174 0056 10BD     		pop	{r4, pc}
+ 175              	.L16:
+ 176              		.align	2
+ 177              	.L15:
+ 178 0058 00000000 		.word	device
+ 179 005c 9F860100 		.word	99999
+ 180              		.cfi_endproc
+ 181              	.LFE34:
+ 182              		.size	BTN_task, .-BTN_task
+ 183              		.comm	device,20,4
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 6
+
+
+ 184              		.text
+ 185              	.Letext0:
+ 186              		.file 2 "c:\\program files (x86)\\cypress\\psoc creator\\4.4\\psoc creator\\import\\gnu\\arm\\5.4.
+ 187              		.file 3 "c:\\program files (x86)\\cypress\\psoc creator\\4.4\\psoc creator\\import\\gnu\\arm\\5.4.
+ 188              		.file 4 "./btns.h"
+ 189              		.file 5 "Generated_Source\\PSoC4/BTN.h"
+ 190              		.section	.debug_info,"",%progbits
+ 191              	.Ldebug_info0:
+ 192 0000 13020000 		.4byte	0x213
+ 193 0004 0400     		.2byte	0x4
+ 194 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 195 000a 04       		.byte	0x4
+ 196 000b 01       		.uleb128 0x1
+ 197 000c 41010000 		.4byte	.LASF36
+ 198 0010 0C       		.byte	0xc
+ 199 0011 2F010000 		.4byte	.LASF37
+ 200 0015 D8000000 		.4byte	.LASF38
+ 201 0019 00000000 		.4byte	.Ldebug_ranges0+0
+ 202 001d 00000000 		.4byte	0
+ 203 0021 00000000 		.4byte	.Ldebug_line0
+ 204 0025 02       		.uleb128 0x2
+ 205 0026 01       		.byte	0x1
+ 206 0027 06       		.byte	0x6
+ 207 0028 50020000 		.4byte	.LASF0
+ 208 002c 02       		.uleb128 0x2
+ 209 002d 01       		.byte	0x1
+ 210 002e 08       		.byte	0x8
+ 211 002f 53000000 		.4byte	.LASF1
+ 212 0033 02       		.uleb128 0x2
+ 213 0034 02       		.byte	0x2
+ 214 0035 05       		.byte	0x5
+ 215 0036 FC010000 		.4byte	.LASF2
+ 216 003a 03       		.uleb128 0x3
+ 217 003b A2000000 		.4byte	.LASF5
+ 218 003f 02       		.byte	0x2
+ 219 0040 2B       		.byte	0x2b
+ 220 0041 45000000 		.4byte	0x45
+ 221 0045 02       		.uleb128 0x2
+ 222 0046 02       		.byte	0x2
+ 223 0047 07       		.byte	0x7
+ 224 0048 26000000 		.4byte	.LASF3
+ 225 004c 02       		.uleb128 0x2
+ 226 004d 04       		.byte	0x4
+ 227 004e 05       		.byte	0x5
+ 228 004f 34020000 		.4byte	.LASF4
+ 229 0053 03       		.uleb128 0x3
+ 230 0054 90000000 		.4byte	.LASF6
+ 231 0058 02       		.byte	0x2
+ 232 0059 41       		.byte	0x41
+ 233 005a 5E000000 		.4byte	0x5e
+ 234 005e 02       		.uleb128 0x2
+ 235 005f 04       		.byte	0x4
+ 236 0060 07       		.byte	0x7
+ 237 0061 70000000 		.4byte	.LASF7
+ 238 0065 02       		.uleb128 0x2
+ 239 0066 08       		.byte	0x8
+ 240 0067 05       		.byte	0x5
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 7
+
+
+ 241 0068 E9010000 		.4byte	.LASF8
+ 242 006c 02       		.uleb128 0x2
+ 243 006d 08       		.byte	0x8
+ 244 006e 07       		.byte	0x7
+ 245 006f 02010000 		.4byte	.LASF9
+ 246 0073 04       		.uleb128 0x4
+ 247 0074 04       		.byte	0x4
+ 248 0075 05       		.byte	0x5
+ 249 0076 696E7400 		.ascii	"int\000"
+ 250 007a 02       		.uleb128 0x2
+ 251 007b 04       		.byte	0x4
+ 252 007c 07       		.byte	0x7
+ 253 007d CB000000 		.4byte	.LASF10
+ 254 0081 03       		.uleb128 0x3
+ 255 0082 10020000 		.4byte	.LASF11
+ 256 0086 03       		.byte	0x3
+ 257 0087 24       		.byte	0x24
+ 258 0088 3A000000 		.4byte	0x3a
+ 259 008c 03       		.uleb128 0x3
+ 260 008d 2B020000 		.4byte	.LASF12
+ 261 0091 03       		.byte	0x3
+ 262 0092 30       		.byte	0x30
+ 263 0093 53000000 		.4byte	0x53
+ 264 0097 02       		.uleb128 0x2
+ 265 0098 08       		.byte	0x8
+ 266 0099 04       		.byte	0x4
+ 267 009a 3D020000 		.4byte	.LASF13
+ 268 009e 02       		.uleb128 0x2
+ 269 009f 04       		.byte	0x4
+ 270 00a0 07       		.byte	0x7
+ 271 00a1 CF010000 		.4byte	.LASF14
+ 272 00a5 02       		.uleb128 0x2
+ 273 00a6 01       		.byte	0x1
+ 274 00a7 08       		.byte	0x8
+ 275 00a8 F7010000 		.4byte	.LASF15
+ 276 00ac 05       		.uleb128 0x5
+ 277 00ad 3E000000 		.4byte	.LASF22
+ 278 00b1 0C       		.byte	0xc
+ 279 00b2 04       		.byte	0x4
+ 280 00b3 16       		.byte	0x16
+ 281 00b4 F5000000 		.4byte	0xf5
+ 282 00b8 06       		.uleb128 0x6
+ 283 00b9 06020000 		.4byte	.LASF16
+ 284 00bd 04       		.byte	0x4
+ 285 00be 18       		.byte	0x18
+ 286 00bf F5000000 		.4byte	0xf5
+ 287 00c3 00       		.byte	0
+ 288 00c4 06       		.uleb128 0x6
+ 289 00c5 9B000000 		.4byte	.LASF17
+ 290 00c9 04       		.byte	0x4
+ 291 00ca 19       		.byte	0x19
+ 292 00cb F5000000 		.4byte	0xf5
+ 293 00cf 01       		.byte	0x1
+ 294 00d0 06       		.uleb128 0x6
+ 295 00d1 19010000 		.4byte	.LASF18
+ 296 00d5 04       		.byte	0x4
+ 297 00d6 1A       		.byte	0x1a
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 8
+
+
+ 298 00d7 F5000000 		.4byte	0xf5
+ 299 00db 02       		.byte	0x2
+ 300 00dc 06       		.uleb128 0x6
+ 301 00dd 6A000000 		.4byte	.LASF19
+ 302 00e1 04       		.byte	0x4
+ 303 00e2 1B       		.byte	0x1b
+ 304 00e3 8C000000 		.4byte	0x8c
+ 305 00e7 04       		.byte	0x4
+ 306 00e8 06       		.uleb128 0x6
+ 307 00e9 25020000 		.4byte	.LASF20
+ 308 00ed 04       		.byte	0x4
+ 309 00ee 1C       		.byte	0x1c
+ 310 00ef F5000000 		.4byte	0xf5
+ 311 00f3 08       		.byte	0x8
+ 312 00f4 00       		.byte	0
+ 313 00f5 02       		.uleb128 0x2
+ 314 00f6 01       		.byte	0x1
+ 315 00f7 02       		.byte	0x2
+ 316 00f8 5C020000 		.4byte	.LASF21
+ 317 00fc 03       		.uleb128 0x3
+ 318 00fd 3E000000 		.4byte	.LASF22
+ 319 0101 04       		.byte	0x4
+ 320 0102 1D       		.byte	0x1d
+ 321 0103 AC000000 		.4byte	0xac
+ 322 0107 07       		.uleb128 0x7
+ 323 0108 19000000 		.4byte	.LASF27
+ 324 010c 01       		.byte	0x1
+ 325 010d 2C000000 		.4byte	0x2c
+ 326 0111 04       		.byte	0x4
+ 327 0112 1F       		.byte	0x1f
+ 328 0113 30010000 		.4byte	0x130
+ 329 0117 08       		.uleb128 0x8
+ 330 0118 39000000 		.4byte	.LASF23
+ 331 011c 00       		.byte	0
+ 332 011d 08       		.uleb128 0x8
+ 333 011e D8010000 		.4byte	.LASF24
+ 334 0122 01       		.byte	0x1
+ 335 0123 08       		.uleb128 0x8
+ 336 0124 C3000000 		.4byte	.LASF25
+ 337 0128 02       		.byte	0x2
+ 338 0129 08       		.uleb128 0x8
+ 339 012a 82000000 		.4byte	.LASF26
+ 340 012e 03       		.byte	0x3
+ 341 012f 00       		.byte	0
+ 342 0130 03       		.uleb128 0x3
+ 343 0131 19000000 		.4byte	.LASF27
+ 344 0135 04       		.byte	0x4
+ 345 0136 25       		.byte	0x25
+ 346 0137 07010000 		.4byte	0x107
+ 347 013b 05       		.uleb128 0x5
+ 348 013c 61000000 		.4byte	.LASF28
+ 349 0140 14       		.byte	0x14
+ 350 0141 04       		.byte	0x4
+ 351 0142 27       		.byte	0x27
+ 352 0143 84010000 		.4byte	0x184
+ 353 0147 06       		.uleb128 0x6
+ 354 0148 0A000000 		.4byte	.LASF29
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 9
+
+
+ 355 014c 04       		.byte	0x4
+ 356 014d 29       		.byte	0x29
+ 357 014e 30010000 		.4byte	0x130
+ 358 0152 00       		.byte	0
+ 359 0153 06       		.uleb128 0x6
+ 360 0154 36010000 		.4byte	.LASF30
+ 361 0158 04       		.byte	0x4
+ 362 0159 2A       		.byte	0x2a
+ 363 015a 30010000 		.4byte	0x130
+ 364 015e 01       		.byte	0x1
+ 365 015f 06       		.uleb128 0x6
+ 366 0160 00000000 		.4byte	.LASF31
+ 367 0164 04       		.byte	0x4
+ 368 0165 2B       		.byte	0x2b
+ 369 0166 F5000000 		.4byte	0xf5
+ 370 016a 02       		.byte	0x2
+ 371 016b 06       		.uleb128 0x6
+ 372 016c 6A000000 		.4byte	.LASF19
+ 373 0170 04       		.byte	0x4
+ 374 0171 2C       		.byte	0x2c
+ 375 0172 81000000 		.4byte	0x81
+ 376 0176 04       		.byte	0x4
+ 377 0177 09       		.uleb128 0x9
+ 378 0178 62746E00 		.ascii	"btn\000"
+ 379 017c 04       		.byte	0x4
+ 380 017d 2D       		.byte	0x2d
+ 381 017e FC000000 		.4byte	0xfc
+ 382 0182 08       		.byte	0x8
+ 383 0183 00       		.byte	0
+ 384 0184 03       		.uleb128 0x3
+ 385 0185 61000000 		.4byte	.LASF28
+ 386 0189 04       		.byte	0x4
+ 387 018a 2E       		.byte	0x2e
+ 388 018b 3B010000 		.4byte	0x13b
+ 389 018f 02       		.uleb128 0x2
+ 390 0190 04       		.byte	0x4
+ 391 0191 04       		.byte	0x4
+ 392 0192 4D000000 		.4byte	.LASF32
+ 393 0196 02       		.uleb128 0x2
+ 394 0197 08       		.byte	0x8
+ 395 0198 04       		.byte	0x4
+ 396 0199 AD000000 		.4byte	.LASF33
+ 397 019d 0A       		.uleb128 0xa
+ 398 019e B4000000 		.4byte	.LASF34
+ 399 01a2 01       		.byte	0x1
+ 400 01a3 1D       		.byte	0x1d
+ 401 01a4 F5000000 		.4byte	0xf5
+ 402 01a8 00000000 		.4byte	.LFB32
+ 403 01ac 28000000 		.4byte	.LFE32-.LFB32
+ 404 01b0 01       		.uleb128 0x1
+ 405 01b1 9C       		.byte	0x9c
+ 406 01b2 C6010000 		.4byte	0x1c6
+ 407 01b6 0B       		.uleb128 0xb
+ 408 01b7 28010000 		.4byte	.LASF39
+ 409 01bb 01       		.byte	0x1
+ 410 01bc 1F       		.byte	0x1f
+ 411 01bd F5000000 		.4byte	0xf5
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 10
+
+
+ 412 01c1 00000000 		.4byte	.LLST0
+ 413 01c5 00       		.byte	0
+ 414 01c6 0C       		.uleb128 0xc
+ 415 01c7 19020000 		.4byte	.LASF40
+ 416 01cb 01       		.byte	0x1
+ 417 01cc 37       		.byte	0x37
+ 418 01cd F5000000 		.4byte	0xf5
+ 419 01d1 00000000 		.4byte	.LFB33
+ 420 01d5 0C000000 		.4byte	.LFE33-.LFB33
+ 421 01d9 01       		.uleb128 0x1
+ 422 01da 9C       		.byte	0x9c
+ 423 01db 0D       		.uleb128 0xd
+ 424 01dc 10000000 		.4byte	.LASF35
+ 425 01e0 01       		.byte	0x1
+ 426 01e1 3C       		.byte	0x3c
+ 427 01e2 00000000 		.4byte	.LFB34
+ 428 01e6 60000000 		.4byte	.LFE34-.LFB34
+ 429 01ea 01       		.uleb128 0x1
+ 430 01eb 9C       		.byte	0x9c
+ 431 01ec FA010000 		.4byte	0x1fa
+ 432 01f0 0E       		.uleb128 0xe
+ 433 01f1 06000000 		.4byte	.LVL4
+ 434 01f5 0B020000 		.4byte	0x20b
+ 435 01f9 00       		.byte	0
+ 436 01fa 0F       		.uleb128 0xf
+ 437 01fb 49020000 		.4byte	.LASF41
+ 438 01ff 01       		.byte	0x1
+ 439 0200 10       		.byte	0x10
+ 440 0201 84010000 		.4byte	0x184
+ 441 0205 05       		.uleb128 0x5
+ 442 0206 03       		.byte	0x3
+ 443 0207 00000000 		.4byte	device
+ 444 020b 10       		.uleb128 0x10
+ 445 020c E0010000 		.4byte	.LASF42
+ 446 0210 E0010000 		.4byte	.LASF42
+ 447 0214 05       		.byte	0x5
+ 448 0215 32       		.byte	0x32
+ 449 0216 00       		.byte	0
+ 450              		.section	.debug_abbrev,"",%progbits
+ 451              	.Ldebug_abbrev0:
+ 452 0000 01       		.uleb128 0x1
+ 453 0001 11       		.uleb128 0x11
+ 454 0002 01       		.byte	0x1
+ 455 0003 25       		.uleb128 0x25
+ 456 0004 0E       		.uleb128 0xe
+ 457 0005 13       		.uleb128 0x13
+ 458 0006 0B       		.uleb128 0xb
+ 459 0007 03       		.uleb128 0x3
+ 460 0008 0E       		.uleb128 0xe
+ 461 0009 1B       		.uleb128 0x1b
+ 462 000a 0E       		.uleb128 0xe
+ 463 000b 55       		.uleb128 0x55
+ 464 000c 17       		.uleb128 0x17
+ 465 000d 11       		.uleb128 0x11
+ 466 000e 01       		.uleb128 0x1
+ 467 000f 10       		.uleb128 0x10
+ 468 0010 17       		.uleb128 0x17
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 11
+
+
+ 469 0011 00       		.byte	0
+ 470 0012 00       		.byte	0
+ 471 0013 02       		.uleb128 0x2
+ 472 0014 24       		.uleb128 0x24
+ 473 0015 00       		.byte	0
+ 474 0016 0B       		.uleb128 0xb
+ 475 0017 0B       		.uleb128 0xb
+ 476 0018 3E       		.uleb128 0x3e
+ 477 0019 0B       		.uleb128 0xb
+ 478 001a 03       		.uleb128 0x3
+ 479 001b 0E       		.uleb128 0xe
+ 480 001c 00       		.byte	0
+ 481 001d 00       		.byte	0
+ 482 001e 03       		.uleb128 0x3
+ 483 001f 16       		.uleb128 0x16
+ 484 0020 00       		.byte	0
+ 485 0021 03       		.uleb128 0x3
+ 486 0022 0E       		.uleb128 0xe
+ 487 0023 3A       		.uleb128 0x3a
+ 488 0024 0B       		.uleb128 0xb
+ 489 0025 3B       		.uleb128 0x3b
+ 490 0026 0B       		.uleb128 0xb
+ 491 0027 49       		.uleb128 0x49
+ 492 0028 13       		.uleb128 0x13
+ 493 0029 00       		.byte	0
+ 494 002a 00       		.byte	0
+ 495 002b 04       		.uleb128 0x4
+ 496 002c 24       		.uleb128 0x24
+ 497 002d 00       		.byte	0
+ 498 002e 0B       		.uleb128 0xb
+ 499 002f 0B       		.uleb128 0xb
+ 500 0030 3E       		.uleb128 0x3e
+ 501 0031 0B       		.uleb128 0xb
+ 502 0032 03       		.uleb128 0x3
+ 503 0033 08       		.uleb128 0x8
+ 504 0034 00       		.byte	0
+ 505 0035 00       		.byte	0
+ 506 0036 05       		.uleb128 0x5
+ 507 0037 13       		.uleb128 0x13
+ 508 0038 01       		.byte	0x1
+ 509 0039 03       		.uleb128 0x3
+ 510 003a 0E       		.uleb128 0xe
+ 511 003b 0B       		.uleb128 0xb
+ 512 003c 0B       		.uleb128 0xb
+ 513 003d 3A       		.uleb128 0x3a
+ 514 003e 0B       		.uleb128 0xb
+ 515 003f 3B       		.uleb128 0x3b
+ 516 0040 0B       		.uleb128 0xb
+ 517 0041 01       		.uleb128 0x1
+ 518 0042 13       		.uleb128 0x13
+ 519 0043 00       		.byte	0
+ 520 0044 00       		.byte	0
+ 521 0045 06       		.uleb128 0x6
+ 522 0046 0D       		.uleb128 0xd
+ 523 0047 00       		.byte	0
+ 524 0048 03       		.uleb128 0x3
+ 525 0049 0E       		.uleb128 0xe
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 12
+
+
+ 526 004a 3A       		.uleb128 0x3a
+ 527 004b 0B       		.uleb128 0xb
+ 528 004c 3B       		.uleb128 0x3b
+ 529 004d 0B       		.uleb128 0xb
+ 530 004e 49       		.uleb128 0x49
+ 531 004f 13       		.uleb128 0x13
+ 532 0050 38       		.uleb128 0x38
+ 533 0051 0B       		.uleb128 0xb
+ 534 0052 00       		.byte	0
+ 535 0053 00       		.byte	0
+ 536 0054 07       		.uleb128 0x7
+ 537 0055 04       		.uleb128 0x4
+ 538 0056 01       		.byte	0x1
+ 539 0057 03       		.uleb128 0x3
+ 540 0058 0E       		.uleb128 0xe
+ 541 0059 0B       		.uleb128 0xb
+ 542 005a 0B       		.uleb128 0xb
+ 543 005b 49       		.uleb128 0x49
+ 544 005c 13       		.uleb128 0x13
+ 545 005d 3A       		.uleb128 0x3a
+ 546 005e 0B       		.uleb128 0xb
+ 547 005f 3B       		.uleb128 0x3b
+ 548 0060 0B       		.uleb128 0xb
+ 549 0061 01       		.uleb128 0x1
+ 550 0062 13       		.uleb128 0x13
+ 551 0063 00       		.byte	0
+ 552 0064 00       		.byte	0
+ 553 0065 08       		.uleb128 0x8
+ 554 0066 28       		.uleb128 0x28
+ 555 0067 00       		.byte	0
+ 556 0068 03       		.uleb128 0x3
+ 557 0069 0E       		.uleb128 0xe
+ 558 006a 1C       		.uleb128 0x1c
+ 559 006b 0B       		.uleb128 0xb
+ 560 006c 00       		.byte	0
+ 561 006d 00       		.byte	0
+ 562 006e 09       		.uleb128 0x9
+ 563 006f 0D       		.uleb128 0xd
+ 564 0070 00       		.byte	0
+ 565 0071 03       		.uleb128 0x3
+ 566 0072 08       		.uleb128 0x8
+ 567 0073 3A       		.uleb128 0x3a
+ 568 0074 0B       		.uleb128 0xb
+ 569 0075 3B       		.uleb128 0x3b
+ 570 0076 0B       		.uleb128 0xb
+ 571 0077 49       		.uleb128 0x49
+ 572 0078 13       		.uleb128 0x13
+ 573 0079 38       		.uleb128 0x38
+ 574 007a 0B       		.uleb128 0xb
+ 575 007b 00       		.byte	0
+ 576 007c 00       		.byte	0
+ 577 007d 0A       		.uleb128 0xa
+ 578 007e 2E       		.uleb128 0x2e
+ 579 007f 01       		.byte	0x1
+ 580 0080 3F       		.uleb128 0x3f
+ 581 0081 19       		.uleb128 0x19
+ 582 0082 03       		.uleb128 0x3
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 13
+
+
+ 583 0083 0E       		.uleb128 0xe
+ 584 0084 3A       		.uleb128 0x3a
+ 585 0085 0B       		.uleb128 0xb
+ 586 0086 3B       		.uleb128 0x3b
+ 587 0087 0B       		.uleb128 0xb
+ 588 0088 49       		.uleb128 0x49
+ 589 0089 13       		.uleb128 0x13
+ 590 008a 11       		.uleb128 0x11
+ 591 008b 01       		.uleb128 0x1
+ 592 008c 12       		.uleb128 0x12
+ 593 008d 06       		.uleb128 0x6
+ 594 008e 40       		.uleb128 0x40
+ 595 008f 18       		.uleb128 0x18
+ 596 0090 9742     		.uleb128 0x2117
+ 597 0092 19       		.uleb128 0x19
+ 598 0093 01       		.uleb128 0x1
+ 599 0094 13       		.uleb128 0x13
+ 600 0095 00       		.byte	0
+ 601 0096 00       		.byte	0
+ 602 0097 0B       		.uleb128 0xb
+ 603 0098 34       		.uleb128 0x34
+ 604 0099 00       		.byte	0
+ 605 009a 03       		.uleb128 0x3
+ 606 009b 0E       		.uleb128 0xe
+ 607 009c 3A       		.uleb128 0x3a
+ 608 009d 0B       		.uleb128 0xb
+ 609 009e 3B       		.uleb128 0x3b
+ 610 009f 0B       		.uleb128 0xb
+ 611 00a0 49       		.uleb128 0x49
+ 612 00a1 13       		.uleb128 0x13
+ 613 00a2 02       		.uleb128 0x2
+ 614 00a3 17       		.uleb128 0x17
+ 615 00a4 00       		.byte	0
+ 616 00a5 00       		.byte	0
+ 617 00a6 0C       		.uleb128 0xc
+ 618 00a7 2E       		.uleb128 0x2e
+ 619 00a8 00       		.byte	0
+ 620 00a9 3F       		.uleb128 0x3f
+ 621 00aa 19       		.uleb128 0x19
+ 622 00ab 03       		.uleb128 0x3
+ 623 00ac 0E       		.uleb128 0xe
+ 624 00ad 3A       		.uleb128 0x3a
+ 625 00ae 0B       		.uleb128 0xb
+ 626 00af 3B       		.uleb128 0x3b
+ 627 00b0 0B       		.uleb128 0xb
+ 628 00b1 49       		.uleb128 0x49
+ 629 00b2 13       		.uleb128 0x13
+ 630 00b3 11       		.uleb128 0x11
+ 631 00b4 01       		.uleb128 0x1
+ 632 00b5 12       		.uleb128 0x12
+ 633 00b6 06       		.uleb128 0x6
+ 634 00b7 40       		.uleb128 0x40
+ 635 00b8 18       		.uleb128 0x18
+ 636 00b9 9742     		.uleb128 0x2117
+ 637 00bb 19       		.uleb128 0x19
+ 638 00bc 00       		.byte	0
+ 639 00bd 00       		.byte	0
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 14
+
+
+ 640 00be 0D       		.uleb128 0xd
+ 641 00bf 2E       		.uleb128 0x2e
+ 642 00c0 01       		.byte	0x1
+ 643 00c1 3F       		.uleb128 0x3f
+ 644 00c2 19       		.uleb128 0x19
+ 645 00c3 03       		.uleb128 0x3
+ 646 00c4 0E       		.uleb128 0xe
+ 647 00c5 3A       		.uleb128 0x3a
+ 648 00c6 0B       		.uleb128 0xb
+ 649 00c7 3B       		.uleb128 0x3b
+ 650 00c8 0B       		.uleb128 0xb
+ 651 00c9 27       		.uleb128 0x27
+ 652 00ca 19       		.uleb128 0x19
+ 653 00cb 11       		.uleb128 0x11
+ 654 00cc 01       		.uleb128 0x1
+ 655 00cd 12       		.uleb128 0x12
+ 656 00ce 06       		.uleb128 0x6
+ 657 00cf 40       		.uleb128 0x40
+ 658 00d0 18       		.uleb128 0x18
+ 659 00d1 9742     		.uleb128 0x2117
+ 660 00d3 19       		.uleb128 0x19
+ 661 00d4 01       		.uleb128 0x1
+ 662 00d5 13       		.uleb128 0x13
+ 663 00d6 00       		.byte	0
+ 664 00d7 00       		.byte	0
+ 665 00d8 0E       		.uleb128 0xe
+ 666 00d9 898201   		.uleb128 0x4109
+ 667 00dc 00       		.byte	0
+ 668 00dd 11       		.uleb128 0x11
+ 669 00de 01       		.uleb128 0x1
+ 670 00df 31       		.uleb128 0x31
+ 671 00e0 13       		.uleb128 0x13
+ 672 00e1 00       		.byte	0
+ 673 00e2 00       		.byte	0
+ 674 00e3 0F       		.uleb128 0xf
+ 675 00e4 34       		.uleb128 0x34
+ 676 00e5 00       		.byte	0
+ 677 00e6 03       		.uleb128 0x3
+ 678 00e7 0E       		.uleb128 0xe
+ 679 00e8 3A       		.uleb128 0x3a
+ 680 00e9 0B       		.uleb128 0xb
+ 681 00ea 3B       		.uleb128 0x3b
+ 682 00eb 0B       		.uleb128 0xb
+ 683 00ec 49       		.uleb128 0x49
+ 684 00ed 13       		.uleb128 0x13
+ 685 00ee 3F       		.uleb128 0x3f
+ 686 00ef 19       		.uleb128 0x19
+ 687 00f0 02       		.uleb128 0x2
+ 688 00f1 18       		.uleb128 0x18
+ 689 00f2 00       		.byte	0
+ 690 00f3 00       		.byte	0
+ 691 00f4 10       		.uleb128 0x10
+ 692 00f5 2E       		.uleb128 0x2e
+ 693 00f6 00       		.byte	0
+ 694 00f7 3F       		.uleb128 0x3f
+ 695 00f8 19       		.uleb128 0x19
+ 696 00f9 3C       		.uleb128 0x3c
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 15
+
+
+ 697 00fa 19       		.uleb128 0x19
+ 698 00fb 6E       		.uleb128 0x6e
+ 699 00fc 0E       		.uleb128 0xe
+ 700 00fd 03       		.uleb128 0x3
+ 701 00fe 0E       		.uleb128 0xe
+ 702 00ff 3A       		.uleb128 0x3a
+ 703 0100 0B       		.uleb128 0xb
+ 704 0101 3B       		.uleb128 0x3b
+ 705 0102 0B       		.uleb128 0xb
+ 706 0103 00       		.byte	0
+ 707 0104 00       		.byte	0
+ 708 0105 00       		.byte	0
+ 709              		.section	.debug_loc,"",%progbits
+ 710              	.Ldebug_loc0:
+ 711              	.LLST0:
+ 712 0000 00000000 		.4byte	.LVL0
+ 713 0004 10000000 		.4byte	.LVL1
+ 714 0008 0200     		.2byte	0x2
+ 715 000a 30       		.byte	0x30
+ 716 000b 9F       		.byte	0x9f
+ 717 000c 10000000 		.4byte	.LVL1
+ 718 0010 1A000000 		.4byte	.LVL2
+ 719 0014 0200     		.2byte	0x2
+ 720 0016 31       		.byte	0x31
+ 721 0017 9F       		.byte	0x9f
+ 722 0018 1A000000 		.4byte	.LVL2
+ 723 001c 20000000 		.4byte	.LVL3
+ 724 0020 0200     		.2byte	0x2
+ 725 0022 30       		.byte	0x30
+ 726 0023 9F       		.byte	0x9f
+ 727 0024 20000000 		.4byte	.LVL3
+ 728 0028 28000000 		.4byte	.LFE32
+ 729 002c 0100     		.2byte	0x1
+ 730 002e 50       		.byte	0x50
+ 731 002f 00000000 		.4byte	0
+ 732 0033 00000000 		.4byte	0
+ 733              		.section	.debug_aranges,"",%progbits
+ 734 0000 2C000000 		.4byte	0x2c
+ 735 0004 0200     		.2byte	0x2
+ 736 0006 00000000 		.4byte	.Ldebug_info0
+ 737 000a 04       		.byte	0x4
+ 738 000b 00       		.byte	0
+ 739 000c 0000     		.2byte	0
+ 740 000e 0000     		.2byte	0
+ 741 0010 00000000 		.4byte	.LFB32
+ 742 0014 28000000 		.4byte	.LFE32-.LFB32
+ 743 0018 00000000 		.4byte	.LFB33
+ 744 001c 0C000000 		.4byte	.LFE33-.LFB33
+ 745 0020 00000000 		.4byte	.LFB34
+ 746 0024 60000000 		.4byte	.LFE34-.LFB34
+ 747 0028 00000000 		.4byte	0
+ 748 002c 00000000 		.4byte	0
+ 749              		.section	.debug_ranges,"",%progbits
+ 750              	.Ldebug_ranges0:
+ 751 0000 00000000 		.4byte	.LFB32
+ 752 0004 28000000 		.4byte	.LFE32
+ 753 0008 00000000 		.4byte	.LFB33
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 16
+
+
+ 754 000c 0C000000 		.4byte	.LFE33
+ 755 0010 00000000 		.4byte	.LFB34
+ 756 0014 60000000 		.4byte	.LFE34
+ 757 0018 00000000 		.4byte	0
+ 758 001c 00000000 		.4byte	0
+ 759              		.section	.debug_line,"",%progbits
+ 760              	.Ldebug_line0:
+ 761 0000 93010000 		.section	.debug_str,"MS",%progbits,1
+ 761      02004601 
+ 761      00000201 
+ 761      FB0E0D00 
+ 761      01010101 
+ 762              	.LASF31:
+ 763 0000 6E65775F 		.ascii	"new_state\000"
+ 763      73746174 
+ 763      6500
+ 764              	.LASF29:
+ 765 000a 73746174 		.ascii	"state\000"
+ 765      6500
+ 766              	.LASF35:
+ 767 0010 42544E5F 		.ascii	"BTN_task\000"
+ 767      7461736B 
+ 767      00
+ 768              	.LASF27:
+ 769 0019 4445565F 		.ascii	"DEV_STATES_t\000"
+ 769      53544154 
+ 769      45535F74 
+ 769      00
+ 770              	.LASF3:
+ 771 0026 73686F72 		.ascii	"short unsigned int\000"
+ 771      7420756E 
+ 771      7369676E 
+ 771      65642069 
+ 771      6E7400
+ 772              	.LASF23:
+ 773 0039 49444C45 		.ascii	"IDLE\000"
+ 773      00
+ 774              	.LASF22:
+ 775 003e 42544E5F 		.ascii	"BTN_INSTANCE_t\000"
+ 775      494E5354 
+ 775      414E4345 
+ 775      5F7400
+ 776              	.LASF32:
+ 777 004d 666C6F61 		.ascii	"float\000"
+ 777      7400
+ 778              	.LASF1:
+ 779 0053 756E7369 		.ascii	"unsigned char\000"
+ 779      676E6564 
+ 779      20636861 
+ 779      7200
+ 780              	.LASF28:
+ 781 0061 44657653 		.ascii	"DevState\000"
+ 781      74617465 
+ 781      00
+ 782              	.LASF19:
+ 783 006a 74696D65 		.ascii	"timer\000"
+ 783      7200
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 17
+
+
+ 784              	.LASF7:
+ 785 0070 6C6F6E67 		.ascii	"long unsigned int\000"
+ 785      20756E73 
+ 785      69676E65 
+ 785      6420696E 
+ 785      7400
+ 786              	.LASF26:
+ 787 0082 54484541 		.ascii	"THEATER_CHASE\000"
+ 787      5445525F 
+ 787      43484153 
+ 787      4500
+ 788              	.LASF6:
+ 789 0090 5F5F7569 		.ascii	"__uint32_t\000"
+ 789      6E743332 
+ 789      5F7400
+ 790              	.LASF17:
+ 791 009b 69734865 		.ascii	"isHeld\000"
+ 791      6C6400
+ 792              	.LASF5:
+ 793 00a2 5F5F7569 		.ascii	"__uint16_t\000"
+ 793      6E743136 
+ 793      5F7400
+ 794              	.LASF33:
+ 795 00ad 646F7562 		.ascii	"double\000"
+ 795      6C6500
+ 796              	.LASF34:
+ 797 00b4 42544E5F 		.ascii	"BTN_getPressed\000"
+ 797      67657450 
+ 797      72657373 
+ 797      656400
+ 798              	.LASF25:
+ 799 00c3 4558504C 		.ascii	"EXPLODE\000"
+ 799      4F444500 
+ 800              	.LASF10:
+ 801 00cb 756E7369 		.ascii	"unsigned int\000"
+ 801      676E6564 
+ 801      20696E74 
+ 801      00
+ 802              	.LASF38:
+ 803 00d8 443A5C45 		.ascii	"D:\\EE\\GitHub\\Psoc\\NeoPixel\\NeoPixel.cydsn\000"
+ 803      455C4769 
+ 803      74487562 
+ 803      5C50736F 
+ 803      635C4E65 
+ 804              	.LASF9:
+ 805 0102 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 805      206C6F6E 
+ 805      6720756E 
+ 805      7369676E 
+ 805      65642069 
+ 806              	.LASF18:
+ 807 0119 69734163 		.ascii	"isAcknowledged\000"
+ 807      6B6E6F77 
+ 807      6C656467 
+ 807      656400
+ 808              	.LASF39:
+ 809 0128 72657375 		.ascii	"result\000"
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 18
+
+
+ 809      6C7400
+ 810              	.LASF37:
+ 811 012f 62746E73 		.ascii	"btns.c\000"
+ 811      2E6300
+ 812              	.LASF30:
+ 813 0136 70726576 		.ascii	"prev_state\000"
+ 813      5F737461 
+ 813      746500
+ 814              	.LASF36:
+ 815 0141 474E5520 		.ascii	"GNU C11 5.4.1 20160609 (release) [ARM/embedded-5-br"
+ 815      43313120 
+ 815      352E342E 
+ 815      31203230 
+ 815      31363036 
+ 816 0174 616E6368 		.ascii	"anch revision 237715] -mcpu=cortex-m0 -mthumb -g -O"
+ 816      20726576 
+ 816      6973696F 
+ 816      6E203233 
+ 816      37373135 
+ 817 01a7 67202D66 		.ascii	"g -ffunction-sections -ffat-lto-objects\000"
+ 817      66756E63 
+ 817      74696F6E 
+ 817      2D736563 
+ 817      74696F6E 
+ 818              	.LASF14:
+ 819 01cf 73697A65 		.ascii	"sizetype\000"
+ 819      74797065 
+ 819      00
+ 820              	.LASF24:
+ 821 01d8 5241494E 		.ascii	"RAINBOW\000"
+ 821      424F5700 
+ 822              	.LASF42:
+ 823 01e0 42544E5F 		.ascii	"BTN_Read\000"
+ 823      52656164 
+ 823      00
+ 824              	.LASF8:
+ 825 01e9 6C6F6E67 		.ascii	"long long int\000"
+ 825      206C6F6E 
+ 825      6720696E 
+ 825      7400
+ 826              	.LASF15:
+ 827 01f7 63686172 		.ascii	"char\000"
+ 827      00
+ 828              	.LASF2:
+ 829 01fc 73686F72 		.ascii	"short int\000"
+ 829      7420696E 
+ 829      7400
+ 830              	.LASF16:
+ 831 0206 69735072 		.ascii	"isPressed\000"
+ 831      65737365 
+ 831      6400
+ 832              	.LASF11:
+ 833 0210 75696E74 		.ascii	"uint16_t\000"
+ 833      31365F74 
+ 833      00
+ 834              	.LASF40:
+ 835 0219 42544E5F 		.ascii	"BTN_getHeld\000"
+ARM GAS  C:\Users\jzapn\AppData\Local\Temp\cccuKIg8.s 			page 19
+
+
+ 835      67657448 
+ 835      656C6400 
+ 836              	.LASF20:
+ 837 0225 73656E73 		.ascii	"sense\000"
+ 837      6500
+ 838              	.LASF12:
+ 839 022b 75696E74 		.ascii	"uint32_t\000"
+ 839      33325F74 
+ 839      00
+ 840              	.LASF4:
+ 841 0234 6C6F6E67 		.ascii	"long int\000"
+ 841      20696E74 
+ 841      00
+ 842              	.LASF13:
+ 843 023d 6C6F6E67 		.ascii	"long double\000"
+ 843      20646F75 
+ 843      626C6500 
+ 844              	.LASF41:
+ 845 0249 64657669 		.ascii	"device\000"
+ 845      636500
+ 846              	.LASF0:
+ 847 0250 7369676E 		.ascii	"signed char\000"
+ 847      65642063 
+ 847      68617200 
+ 848              	.LASF21:
+ 849 025c 5F426F6F 		.ascii	"_Bool\000"
+ 849      6C00
+ 850              		.ident	"GCC: (GNU Tools for ARM Embedded Processors) 5.4.1 20160609 (release) [ARM/embedded-5-bran

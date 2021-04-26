@@ -1,0 +1,21 @@
+(DELAYFILE
+ (SDFVERSION "IEEE 1497 4.0")
+ (DATE "2021-04-26T18:06:41Z")
+ (DESIGN "NeoPixel")
+ (VENDOR "Cypress Semiconductor")
+ (PROGRAM "PSoC Creator")
+ (VERSION " 4.4")
+ (DIVIDER .)
+ (TIMESCALE 1 ns)
+ (CELL
+  (CELLTYPE "NeoPixel")
+  (INSTANCE *)
+  (DELAY
+   (ABSOLUTE
+    (INTERCONNECT \\NeoPixel\:pixl\(0\)_PAD\\ \\NeoPixel\:pixl\(0\)\\.pad_in (0.000:0.000:0.000))
+    (INTERCONNECT BTN\(0\)_PAD BTN\(0\).pad_in (0.000:0.000:0.000))
+    (INTERCONNECT LEDA\(0\)_PAD LEDA\(0\).pad_in (0.000:0.000:0.000))
+   )
+  )
+ )
+)

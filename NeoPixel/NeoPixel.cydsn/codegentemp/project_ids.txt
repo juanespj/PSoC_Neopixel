@@ -1,0 +1,8 @@
+D:\EE\GitHub\Psoc\NeoPixel\NeoPixel.cydsn\NeoPixel.cyprj|685fc84b-b530-4b4b-bb88-ebf4c658fe5c
+D:\EE\GitHub\Psoc\Components\JElib.cylib\JElib.cyprj|2c6b9790-bd74-4bda-9887-de382231ce28
+C:\Program Files (x86)\Cypress\PSoC Creator\4.4\PSoC Creator\psoc\content\default\CyAnnotationLibrary\CyAnnotationLibrary.cylib\CyAnnotationLibrary.cyprj|50b292d4-6538-497f-aa7c-ceb9af648b2c
+C:\Users\jzapn\OneDrive\Documentos\PSoC Creator\4.4\Downloads ( 4.4).cylib\Downloads ( 4.4).cyprj|f866d786-1b4b-4865-a9af-8b5c9d203d13
+C:\Users\jzapn\OneDrive\Documentos\PSoC Creator\4.3\Downloads ( 4.3).cylib\Downloads ( 4.3).cyprj|0497ffdb-cb5b-4123-b9fa-60b627c77430
+C:\Program Files (x86)\Cypress\PSoC Creator\4.4\PSoC Creator\psoc\content\cycomponentlibraryupdates\CyComponentLibraryUpdates.cylib\CyComponentLibraryUpdates.cyprj|40987067-57e5-451e-b602-63b400dbbe30
+C:\Program Files (x86)\Cypress\PSoC Creator\4.4\PSoC Creator\psoc\content\cycomponentlibrary\CyComponentLibrary.cylib\CyComponentLibrary.cyprj|6d70f798-2b1f-474f-aa75-3c88e6f3e5ba
+C:\Program Files (x86)\Cypress\PSoC Creator\4.4\PSoC Creator\psoc\content\cyprimitives\CyPrimitives.cylib\CyPrimitives.cyprj|46ab44a9-9579-483f-9f90-00c5a9d71aa8
