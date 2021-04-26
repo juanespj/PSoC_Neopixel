@@ -1,5 +1,6 @@
 # PSoC_Neopixel
  Lightweight Neopixel Driver
+[Youtube link](https://www.hackster.io/juanespj/psoc-neopixel-easy-ac6884)
 
 I got into the NeoPixels/WS2812 with this very useful implementation [FunWithLEDS ](https://community.cypress.com/t5/PSoC-Creator-Designer-Software/NeoPixel-WS2811-12-component/td-p/221257)
 but the two ICs I wanted to use for the LED Strips PSoC 4000, 4000s where not compatible with this library.
