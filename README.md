@@ -6,12 +6,11 @@ but the two ICs I wanted to use for the LED Strips PSoC 4000, 4000s where not co
 So I had to read quite a bit to figure out a lightweight alternative and also I was intrigued in understanding the protocol. 
 
 I came across [this article](https://wp.josh.com/2014/05/13/ws2812-neopixels-are-not-so-finicky-once-you-get-to-know-them/), it is a really in depth explanation on the communication protocol, and has a easy to follow implementation for Arduino, It only required porting to PSoC and adapting it.
-<img align="right"  height="200" src="images/Schematic.png">
-PSoC Schematic UI (Button + board LED) & NeoPixel Controller Block
 
+![PSoC Schematic UI (Button + board LED) & NeoPixel Controller Block](images/Schematic.png)
 
 The simplest explanation of this protocol is we have basically three different signals that are communicated from the controller to the Strip.
-<img align="right"  height="200" src="images/Protocol.png">
+![Protocol](images/Protocol.png)
 
 In this approach I am counting on the time it takes the MCU to shift the output value of a pin.
 ```c
@@ -44,7 +43,8 @@ but I have tweaked the code removing all the blocking bits making them more usef
 
 
 The Demo funtions allow the following functionality cool to try.
-Solid Color 
-rainbow color gradient
-running LEDS (Theater Chase)
-Detonate.
+
+  * Solid Color
+  * rainbow color gradient
+  * running LEDS (Theater Chase)
+  * Detonate.
