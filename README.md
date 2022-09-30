@@ -1,5 +1,7 @@
 # PSoC_Neopixel
- Lightweight Neopixel Driver
+ Lightweight Neopixel Driver 
+ [Hackster link](https://www.hackster.io/juanespj/psoc-neopixel-easy-lightweight-library-ac6884)
+ 
 [Youtube link](https://www.hackster.io/juanespj/psoc-neopixel-easy-ac6884)
 
 I got into the NeoPixels/WS2812 with this very useful implementation [FunWithLEDS ](https://community.cypress.com/t5/PSoC-Creator-Designer-Software/NeoPixel-WS2811-12-component/td-p/221257)
