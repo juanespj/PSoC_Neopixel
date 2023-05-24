@@ -37,7 +37,7 @@ void `$INSTANCE_NAME`_sendBit(bool bitVal)
 void `$INSTANCE_NAME`_sendByte(uint8_t byte)
 {
 for( uint8_t bit =8 ; bit > 0 ; bit-- ) {
-    `$INSTANCE_NAME`_sendBit( (byte>>bit)&0x01u );   ; // Neopixel wants bit in highest-to-lowest 
+    `$INSTANCE_NAME`_sendBit( (byte>>(bit-1))&0x01u );   ; // Neopixel wants bit in highest-to-lowest 
     byte <<= 1;                            
   }
 }
